@@ -16,10 +16,9 @@ return new class extends Migration
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
             $table->text('message');
-            $table->boolean('is_seen')->default(false);
-            $table->foreignId('user_id')->constrained('users');
-            $table->foreignId('chat_id')->nullable()->constrained('chats'); //for private conv
-            $table->foreignId('group_id')->nullable()->constrained('groups'); //for group conv
+            $table->foreignId('sender_id')->constrained('users');
+            $table->foreignId('parent_message_id')->nullable()->constrained('messages');
+            $table->enum('type', ['text', 'image', 'video', 'audio', 'file'])->default('text');
             $table->timestamps();
         });
     }

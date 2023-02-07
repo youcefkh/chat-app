@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Recipients extends Model
+class Recipient extends Model
 {
     use HasFactory;
     protected $table = 'message_recipients';

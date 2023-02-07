@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('message_id')->constrained('messages');
             $table->foreignId('recipient_id')->constrained('users');
-            $table->foreignId('recipient_group_id')->nullable()->constrained('group_members');
+            $table->foreignId('recipient_group_id')->nullable()->constrained('groups');
             $table->boolean('is_seen')->default(false);
             $table->timestamps();
         });

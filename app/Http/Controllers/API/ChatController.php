@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers\API;
 
+use Carbon\Carbon;
 use App\Models\Chat;
 use App\Models\User;
 use App\Models\Group;
 use App\Models\Message;
 use App\Events\WaveSent;
+use App\Models\Recipient;
+use App\Models\Recipients;
 use App\Events\MessageSent;
+use App\Models\GroupMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class ChatController extends Controller
@@ -24,7 +27,6 @@ class ChatController extends Controller
 
     public function storeMessage(Request $request)
     {
-        $chat = null;
         $user_id = Auth::user()->id;
         $message = [];
 
@@ -40,40 +42,43 @@ class ChatController extends Controller
                 "content" => $media_path,
                 "type" => $request->type
             ];
-        }else {
+        } else {
             $message = [
                 "content" => $request->message,
                 "type" => "text"
             ];
         }
 
-        //if the conv is private(chat)
-        if ($request->friend_id) {
-            $chat = Chat::chat(Auth::user()->id, $request->friend_id);
-
-            // and it's the 1st message between the two users
-            if (!$chat) {
-                $chat = Chat::Create([
-                    'user_one'    => $user_id,
-                    'user_two'    => $request->friend_id
-                ]);
-            }
-        }
-
         $messageCreated = Message::create([
             "message" => $message["content"],
             "type" => $message["type"],
-            "user_id" => $user_id,
-            "chat_id" => $chat ? $chat->id : null,
-            "group_id" => !$chat ? $request->group_id : null,
+            "sender_id" => $user_id,
         ]);
+
+        //if the conv is a group
+        if ($request->group_id) {
+            $members = GroupMember::where('group_id', $request->group_id)->where('user_id', '!=', $user_id)->get();
+
+            foreach ($members as $member) {
+                Recipient::create([
+                    'message_id' => $messageCreated->id,
+                    'recipient_id' => $member->user_id,
+                    'recipient_group_id' => $member->group_id
+                ]);
+            }
+        } else {
+            Recipient::create([
+                'message_id' => $messageCreated->id,
+                'recipient_id' => $request->friend_id
+            ]);
+        }
 
         //add message creating date
         $message['created_at'] = $messageCreated->created_at;
 
         $conversation = [
             "type" => $request->friend_id ? "private" : "group",
-            "receiver_id" => $request->friend_id ? $request->friend_id : $request->group_id
+            "recipient_id" => $request->friend_id ? $request->friend_id : $request->group_id
         ];
 
         broadcast(new MessageSent($request->user(), $message, $conversation))->toOthers();
@@ -81,16 +86,35 @@ class ChatController extends Controller
         return $messageCreated;
     }
 
-    public function getMessages(string $type, int $receiver_id)
+    public function getMessages(string $type, int $recipient_id)
     {
         if ($type == "group") {
-            return Message::where('group_id', $receiver_id)->with('user:id,name')->latest()->paginate(10);
+            return Message::join('message_recipients AS recipients', 'messages.id', '=', 'recipients.message_id')
+                ->join('users', 'users.id', '=', 'messages.sender_id')
+                ->select('messages.*', 'users.name AS user_name')
+                ->where('recipients.recipient_group_id', $recipient_id)
+                ->groupBy('messages.id')
+                ->latest()->paginate(10);
+
         } else {
-            $chat = Chat::chat(Auth::user()->id, $receiver_id);
-
-            $result = $chat ? Message::where('chat_id', $chat->id)->with('user:id,name,email')->latest()->paginate(10) : null;
-
-            return $result;
+            return Message::join('message_recipients AS recipients', 'messages.id', '=', 'recipients.message_id')
+                ->join('users', 'users.id', '=', 'messages.sender_id')
+                ->select('messages.*', 'users.name AS user_name', 'recipients.recipient_id AS recipient_id')
+                ->Where('recipients.recipient_group_id', null)
+                ->where(
+                    function ($query) use ($recipient_id){
+                        return $query
+                            ->where([
+                                ['recipients.recipient_id', $recipient_id],
+                                ['messages.sender_id', Auth::user()->id],
+                            ])
+                            ->OrWhere([
+                                ['recipients.recipient_id', Auth::user()->id],
+                                ['messages.sender_id', $recipient_id],
+                            ]);
+                    }
+                )
+                ->latest()->paginate(10);
         }
     }
 

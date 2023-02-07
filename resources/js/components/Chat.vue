@@ -110,7 +110,7 @@
                 </div>
 
                 <!-- see more button -->
-                <div ref="seeMoreBtn" class="m-auto">
+                <div ref="seeMoreBtn" class="m-auto" v-if="isDisplaySeeMoreBtn">
                     <v-btn
                         class="mb-5"
                         :prepend-icon="
@@ -236,6 +236,7 @@ export default {
     },
     data() {
         return {
+            userId: null,
             moment: moment,
             recievedMessage: "",
             myMessage: "",
@@ -243,6 +244,7 @@ export default {
             messages: [],
             users: [],
             friend: null,
+            group: null,
             waveMessage: null,
             sound: sound2,
             messageSound: message,
@@ -250,6 +252,7 @@ export default {
             cursorPosition: 0,
             pagination: 0,
             isLoadingMessages: false,
+            isDisplaySeeMoreBtn: true,
         };
     },
     computed: {
@@ -265,16 +268,25 @@ export default {
         "$route.params": {
             handler(params) {
                 this.messages = [];
+                this.pagination = 0;
+                this.isDisplaySeeMoreBtn = true;
+
                 if (params.type === "group") {
                     this.friend = null;
                     this.getOnlineUsers();
+                    this.getGroup()
+                        .then(() => (this.setPageTitle()));
                 } else {
                     this.users = [];
-                    this.getFriend();
+                    this.getFriend()
+                        .then(() => (this.setPageTitle()));
                 }
+
                 this.getMessages();
-                this.receiveMessage();
-                this.receiveWave();
+                this.getUserId().then(() => {
+                    this.receiveMessage();
+                    this.receiveWave();
+                });
             },
             immediate: true,
         },
@@ -286,7 +298,23 @@ export default {
         },
     },
     methods: {
-        sendMessage(direction) {
+        setPageTitle() {
+            document.title +=
+                this.convType == "private"
+                    ? ` - ${this.friend.name}`
+                    : ` - ${this.group.name}`;
+        },
+
+        async getUserId() {
+            try {
+                const result = await axiosClient.get("/auth-user");
+                this.userId = result.data.id;
+            } catch (err) {
+                console.log(err);
+            }
+        },
+
+        async sendMessage(direction) {
             if (!this.myMessage) {
                 return;
             }
@@ -304,8 +332,8 @@ export default {
                 this.myMessage = "";
                 this.scrollToBottom();
 
-                axiosClient
-                    .post(
+                try {
+                    const result = await axiosClient.post(
                         "/chat/message",
                         {
                             message,
@@ -323,14 +351,12 @@ export default {
                                 "X-Socket-Id": Echo.socketId(),
                             },
                         }
-                    )
-                    .then((result) => {
-                        this.messages[messageIndex].body = result.data.message; //display message after sanitization
-                        this.messages[messageIndex].status = "sent";
-                    })
-                    .catch((err) => {
-                        this.messages[messageIndex].status = "failed";
-                    });
+                    );
+                    this.messages[messageIndex].body = result.data.message; //display message after sanitization
+                    this.messages[messageIndex].status = "sent";
+                } catch (err) {
+                    this.messages[messageIndex].status = "failed";
+                }
             } else {
                 alert("something went wrong");
             }
@@ -382,29 +408,33 @@ export default {
         },
 
         receiveMessage() {
-            axiosClient
-                .get(`chat/${this.$route.params.type}/${this.$route.params.id}`)
-                .then((result) => {
-                    Echo.private(
-                        `chat.${this.$route.params.type}.${result.data.id}`
-                    ).listen("MessageSent", (e) => {
-                        this.messages.push({
-                            body: e.message.content,
-                            type: e.message.type,
-                            author: e.user.name,
-                            created_at: e.message.created_at,
-                        });
-                        this.scrollToBottom();
+            const convType = this.$route.params.type;
+            const recipientId = this.$route.params.id;
+            const userId = this.userId;
+            const channelName =
+                convType == "private"
+                    ? Math.max(userId, recipientId) +
+                      "-" +
+                      Math.min(userId, recipientId)
+                    : recipientId; //get something like 17-36 if conv is private
 
-                        //play sound
-                        var audio = new Audio(this.messageSound); // path to file
-                        audio.volume = 0.3;
-                        audio.play();
+            Echo.private(`chat.${convType}.${channelName}`).listen(
+                "MessageSent",
+                (e) => {
+                    this.messages.push({
+                        body: e.message.content,
+                        type: e.message.type,
+                        author: e.user.name,
+                        created_at: e.message.created_at,
                     });
-                })
-                .catch((err) => {
-                    console.log(err);
-                });
+                    this.scrollToBottom();
+
+                    //play sound
+                    var audio = new Audio(this.messageSound); // path to file
+                    audio.volume = 0.3;
+                    audio.play();
+                }
+            );
         },
 
         getOnlineUsers() {
@@ -428,15 +458,26 @@ export default {
             });
         },
 
-        getFriend() {
-            axiosClient
-                .get(`/user/${this.$route.params.id}`)
-                .then((result) => {
-                    this.friend = result.data;
-                })
-                .catch((err) => {
-                    console.log(err);
-                });
+        async getFriend() {
+            try {
+                const result = await axiosClient.get(
+                    `/user/${this.$route.params.id}`
+                );
+                this.friend = result.data;
+            } catch (err) {
+                console.log(err);
+            }
+        },
+
+        async getGroup() {
+            try {
+                const result = await axiosClient.get(
+                    `/group/${this.$route.params.id}`
+                );
+                this.group = result.data;
+            } catch (err) {
+                console.log(err);
+            }
         },
 
         scrollToBottom(time = 100) {
@@ -449,6 +490,7 @@ export default {
         getMessages(scrollToBottom = true) {
             this.pagination++;
             this.isLoadingMessages = true;
+
             const type = this.$route.params.type;
             const id = this.$route.params.id;
             axiosClient
@@ -461,14 +503,15 @@ export default {
                             body: data.message,
                             type: data.type,
                             author:
-                                authUserId === data.user_id
+                                authUserId === data.sender_id
                                     ? "me"
-                                    : data.user.name,
+                                    : data.user_name,
                             created_at: data.created_at,
                         }));
                         this.messages.unshift(...newMessages);
+
                         if (this.messages.length == result.data.total) {
-                            this.$refs.seeMoreBtn.style.display = "none";
+                            this.isDisplaySeeMoreBtn = false;
                         }
                     }
                 })
@@ -505,30 +548,19 @@ export default {
         },
 
         receiveWave() {
-            axiosClient
-                .get("/auth-user")
-                .then((result) => {
-                    const userId = result.data.id;
-                    Echo.private(`chat.wave.${userId}`).listen(
-                        "WaveSent",
-                        (e) => {
-                            this.waveMessage = e.message;
-                            const element =
-                                document.getElementById("wave-message");
-                            element.classList.remove("show"); // reset animation
-                            void element.offsetWidth; // trigger reflow
-                            element.classList.add("show"); // start animation
+            const userId = this.userId;
+            Echo.private(`chat.wave.${userId}`).listen("WaveSent", (e) => {
+                this.waveMessage = e.message;
+                const element = document.getElementById("wave-message");
+                element.classList.remove("show"); // reset animation
+                void element.offsetWidth; // trigger reflow
+                element.classList.add("show"); // start animation
 
-                            //play sound
-                            var audio = new Audio(this.sound); // path to file
-                            audio.volume = 0.1;
-                            audio.play();
-                        }
-                    );
-                })
-                .catch((err) => {
-                    console.log(err);
-                });
+                //play sound
+                var audio = new Audio(this.sound); // path to file
+                audio.volume = 0.1;
+                audio.play();
+            });
         },
 
         onSelectEmoji(emoji) {
@@ -557,16 +589,6 @@ export default {
             document.body.appendChild(link);
             link.click();
         },
-    },
-
-    mounted() {
-        /* if (this.$route.params.type === "group") {
-            this.getOnlineUsers();
-        } else {
-            this.getFriend();
-        }
-        this.getMessages();
-        this.receiveMessage(); */
     },
 };
 </script>

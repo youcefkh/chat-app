@@ -41,7 +41,7 @@ class MessageSent implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        $id = $this->conversation['type'] == "private" ? Chat::chat($this->user->id, $this->conversation['receiver_id'])->id : $this->conversation['receiver_id'];
-        return new PrivateChannel('chat.'. $this->conversation['type'] .'.'. $id);
+        $channel_name = $this->conversation['type'] == 'private' ? max($this->user->id, $this->conversation['recipient_id']) . '-' . min($this->user->id, $this->conversation['recipient_id']) : $this->conversation['recipient_id']; //get something like 17-36 if the conv is private
+        return new PrivateChannel('chat.'. $this->conversation['type'] .'.'. $channel_name);
     }
 }

@@ -61,6 +61,9 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
+    //set page title
+    document.title = to.name.charAt(0).toUpperCase() + to.name.slice(1); //capitalize first letter
+
     if (to.meta.requiresAuth && !store.state.user.token) {
         next({ name: "login" });
     } else if (!to.meta.requiresAuth && store.state.user.token) {

@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Auth\Events\Login;
 use App\Http\Controllers\Controller;
+use App\Models\GroupMember;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -94,7 +95,6 @@ class UserController extends Controller
             'name' => ['required', 'regex:/^[\pL\s]+$/u', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'is_logged_in' => true
         ]);
     }
     
@@ -103,10 +103,18 @@ class UserController extends Controller
      */
     protected function create(Request $request)
     {
+        //create user
         $user = User::create([
             'name' => $request['name'],
             'email' => $request['email'],
             'password' => Hash::make($request['password']),
+            'is_logged_in' => true
+        ]);
+
+        //add user to the general group
+        GroupMember::create([
+            'group_id' => 1,
+            'user_id' => $user->id
         ]);
     
         return response()->json([

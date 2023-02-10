@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Group;
+use App\Models\GroupMember;
 use Illuminate\Http\Request;
 
 class GroupController extends Controller
@@ -67,5 +68,26 @@ class GroupController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    /* Group members */
+
+    public function showMembers(int $group_id)
+    {
+        return Group::find($group_id)->users()->get(['users.id', 'users.name', 'users.email']);
+    }
+
+    public function deleteMember(int $user_id)
+    {
+        return GroupMember::where('user_id', $user_id)->delete();
+    }
+
+    public function isMember(int $group_id, int $user_id)
+    {
+        $result = GroupMember::where('group_id', $group_id)->where('user_id', $user_id)->exists();
+        
+        return response()->json([
+            'isMember' => $result,
+        ], 200);
     }
 }

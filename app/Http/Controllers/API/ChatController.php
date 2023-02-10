@@ -28,7 +28,7 @@ class ChatController extends Controller
     public function storeMessage(Request $request)
     {
         $user_id = Auth::user()->id;
-        $message = [];
+        $message = []; //message details to broadcast
 
         //if the message is a media file
         if ($request->hasFile('media')) {
@@ -45,7 +45,7 @@ class ChatController extends Controller
         } else {
             $message = [
                 "content" => $request->message,
-                "type" => "text"
+                "type" => $request->type
             ];
         }
 
@@ -55,6 +55,7 @@ class ChatController extends Controller
             "sender_id" => $user_id,
         ]);
 
+        /* link the message to every recipient */
         //if the conv is a group
         if ($request->group_id) {
             $members = GroupMember::where('group_id', $request->group_id)->where('user_id', '!=', $user_id)->get();

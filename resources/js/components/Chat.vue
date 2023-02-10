@@ -1,7 +1,5 @@
 <template>
     <div>
-        <h1 class="headline">Chat Box</h1>
-
         <!-- waving notification message -->
         <div id="wave-message">
             <span v-html="waveMessage"></span>
@@ -9,103 +7,167 @@
         </div>
 
         <main id="app" class="position-relative">
-            <section ref="chatArea" class="chat-area rounded">
+            <!-- online users -->
+            <div class="users-list w-25">
+                <div v-if="!friend">
+                    <p class="h4">
+                        <v-icon icon="mdi-account-badge" />
+                        Online Users
+                    </p>
+                    <v-list class="overflow-hidden" lines="one">
+                        <router-link
+                            v-for="(user, index) in onlineUsers"
+                            :key="index"
+                            :to="{
+                                name: 'chat',
+                                params: { type: 'private', id: user.id },
+                            }"
+                            class="d-flex mb-2"
+                        >
+                            <v-list-item
+                                :title="user.name"
+                                :subtitle="user.email"
+                                prepend-avatar="https://cdn-icons-png.flaticon.com/512/147/147144.png"
+                            ></v-list-item>
+                            <v-icon
+                                class="hand"
+                                icon="mdi-hand-wave"
+                                :title="'wave at ' + user.name"
+                                @click="wave($event, user.id)"
+                            />
+                        </router-link>
+                    </v-list>
+                </div>
+                <div v-else>
+                    <p class="h6">This is a private conversation with:</p>
+                    <v-list class="d-flex" lines="one">
+                        <v-list-item
+                            :title="friend.name"
+                            :subtitle="friend.email"
+                            prepend-avatar="https://cdn-icons-png.flaticon.com/512/147/147144.png"
+                        >
+                        </v-list-item>
+                        <v-icon
+                            class="hand"
+                            icon="mdi-hand-wave"
+                            :title="'wave at ' + friend.name"
+                            @click="wave($event, friend.id)"
+                        />
+                    </v-list>
+                </div>
+            </div>
+
+            <!-- chat box -->
+            <div ref="chatArea" class="chat-area rounded">
                 <!-- messages -->
                 <div>
-                    <div
-                        v-for="(message, index) in messages"
-                        :key="index"
-                        class="message"
-                        :class="{
-                            'message-out': message.author === 'me',
-                            'message-in': message.author !== 'me',
-                        }"
-                    >
-                        <span
-                            :title="moment(message.created_at).format('LLL')"
-                            class="date"
-                            >{{ moment(message.created_at).fromNow() }}</span
-                        >
-
-                        <!-- display the message -->
+                    <div v-for="(message, index) in messages" :key="index">
+                        <!-- if message is not of type info -->
                         <div
-                            class="media-container"
-                            v-if="message.type !== 'text'"
+                            v-if="message.type !== 'info'"
+                            class="message"
+                            :class="{
+                                'message-out': message.author === 'me',
+                                'message-in': message.author !== 'me',
+                            }"
                         >
-                            <!-- message as an image -->
-                            <v-img
-                                v-if="message.type == 'image'"
-                                :src="message.body"
-                                :lazy-src="message.body"
-                                aspect-ratio="1"
-                                cover
-                                class="image rounded bg-grey-lighten-2"
-                                @click="openImage(message.body)"
+                            <span
+                                :title="
+                                    moment(message.created_at).format('LLL')
+                                "
+                                class="date"
+                                >{{
+                                    moment(message.created_at).fromNow()
+                                }}</span
                             >
-                                <template v-slot:placeholder>
-                                    <v-row
-                                        class="fill-height ma-0"
-                                        align="center"
-                                        justify="center"
-                                    >
-                                        <v-progress-circular
-                                            indeterminate
-                                            color="grey-lighten-5"
-                                        ></v-progress-circular>
-                                    </v-row>
-                                </template>
-                            </v-img>
 
-                            <!-- message as a video -->
-                            <video-player
-                                v-else-if="message.type == 'video'"
-                                :src="message.body"
-                                contain
-                                double-click-fullscreen
+                            <!-- display the message -->
+                            <!-- message as an image -->
+                            <div
+                                class="media-container"
+                                v-if="message.type !== 'text'"
                             >
-                            </video-player>
+                                <v-img
+                                    v-if="message.type == 'image'"
+                                    :src="message.body"
+                                    :lazy-src="message.body"
+                                    aspect-ratio="1"
+                                    cover
+                                    class="image rounded bg-grey-lighten-2"
+                                    @click="openImage(message.body)"
+                                >
+                                    <template v-slot:placeholder>
+                                        <v-row
+                                            class="fill-height ma-0"
+                                            align="center"
+                                            justify="center"
+                                        >
+                                            <v-progress-circular
+                                                indeterminate
+                                                color="grey-lighten-5"
+                                            ></v-progress-circular>
+                                        </v-row>
+                                    </template>
+                                </v-img>
+
+                                <!-- message as a video -->
+                                <video-player
+                                    v-else-if="message.type == 'video'"
+                                    :src="message.body"
+                                    contain
+                                    double-click-fullscreen
+                                >
+                                </video-player>
+                            </div>
+
+                            <!-- message as a text -->
+                            <p class="message-content mb-0" v-else>
+                                {{ message.body }}
+                            </p>
+
+                            <!-- author -->
+                            <span
+                                v-if="message.author !== 'me'"
+                                class="message-author"
+                            >
+                                {{ message.author }}
+                            </span>
+
+                            <!-- message status -->
+                            <span
+                                v-if="message.author === 'me' && message.status"
+                                class="message-status"
+                            >
+                                <v-icon
+                                    v-if="message.status == 'pending'"
+                                    icon="mdi-clock-outline"
+                                />
+                                <v-icon
+                                    v-else-if="message.status == 'sent'"
+                                    icon="mdi-check-all"
+                                />
+                                <v-icon
+                                    v-else-if="message.status == 'failed'"
+                                    icon="mdi-alert-circle"
+                                />
+                            </span>
+
+                            <!-- download file -->
+                            <button
+                                class="download"
+                                v-if="message.type !== 'text'"
+                                @click="downloadMedia(message.body)"
+                            >
+                                <v-icon icon="mdi-download-circle" />
+                            </button>
                         </div>
 
-                        <!-- message as a text -->
-                        <p class="message-content mb-0" v-else>
-                            {{ message.body }}
-                        </p>
-
-                        <!-- author -->
-                        <span
-                            v-if="message.author !== 'me'"
-                            class="message-author"
-                        >
-                            {{ message.author }}
-                        </span>
-
-                        <!-- message status -->
-                        <span
-                            v-if="message.author === 'me' && message.status"
-                            class="message-status"
-                        >
-                            <v-icon
-                                v-if="message.status == 'pending'"
-                                icon="mdi-clock-outline"
-                            />
-                            <v-icon
-                                v-else-if="message.status == 'sent'"
-                                icon="mdi-check-all"
-                            />
-                            <v-icon
-                                v-else-if="message.status == 'failed'"
-                                icon="mdi-alert-circle"
-                            />
-                        </span>
-
-                        <!-- download file -->
-                        <button
-                            class="download"
-                            v-if="message.type !== 'text'"
-                            @click="downloadMedia(message.body)"
-                        >
-                            <v-icon icon="mdi-download-circle" />
-                        </button>
+                        <div class="message-info" v-else>
+                            <span>{{
+                                moment(message.created_at).fromNow()
+                            }}</span>
+                            <span>{{ message.body }}</span>
+                        </div>
                     </div>
                 </div>
 
@@ -158,55 +220,67 @@
                         />
                     </div>
                 </v-form>
-            </section>
+            </div>
 
-            <!-- online users -->
-            <aside class="users-list position-absolute top-0">
-                <div v-if="!friend">
-                    <p class="h4">Online Users</p>
-                    <v-list class="overflow-hidden" lines="one">
-                        <router-link
-                            v-for="(user, index) in users"
-                            :key="index"
-                            :to="{
-                                name: 'chat',
-                                params: { type: 'private', id: user.id },
-                            }"
-                            class="d-flex mb-2"
-                        >
-                            <v-list-item
-                                :title="user.name"
-                                :subtitle="user.email"
-                                prepend-avatar="https://cdn-icons-png.flaticon.com/512/147/147144.png"
-                            ></v-list-item>
-                            <v-icon
-                                class="hand"
-                                icon="mdi-hand-wave"
-                                :title="'wave at ' + user.name"
-                                @click="wave($event, user.id)"
-                            />
-                        </router-link>
-                    </v-list>
-                    <ul></ul>
+            <!-- chat options -->
+            <div class="options w-25 pl-10" v-if="convType == 'group'">
+                <p class="h4">
+                    <v-icon icon="mdi-account-group-outline" />
+                    {{ group ? group.name : null }}
+                </p>
+
+                <!-- add new member -->
+                <v-btn
+                    prepend-icon="mdi-account-plus-outline"
+                    variant="outlined"
+                    class="mb-3"
+                >
+                    Add new member
+                </v-btn>
+
+                <!-- show group members -->
+                <div class="mb-3">
+                    <v-btn
+                        prepend-icon="mdi-account-group"
+                        :append-icon="
+                            isExpanded ? 'mdi-menu-up' : 'mdi-menu-down'
+                        "
+                        variant="outlined"
+                        @click="expand"
+                    >
+                        Group members
+                    </v-btn>
+                    <div ref="expantionPanel" id="expantionPanel">
+                        <v-list class="overflow-hidden" lines="one">
+                            <router-link
+                                v-for="(user, index) in groupMembers"
+                                :key="index"
+                                :to="{
+                                    name: 'chat',
+                                    params: { type: 'private', id: user.id },
+                                }"
+                                class="d-flex mb-2"
+                            >
+                                <v-list-item
+                                    :title="user.name"
+                                    :subtitle="user.email"
+                                    prepend-avatar="https://cdn-icons-png.flaticon.com/512/147/147144.png"
+                                ></v-list-item>
+                            </router-link>
+                        </v-list>
+                    </div>
                 </div>
-                <div v-else>
-                    <p class="h6">This is a private conversation with:</p>
-                    <v-list class="d-flex" lines="one">
-                        <v-list-item
-                            :title="friend.name"
-                            :subtitle="friend.email"
-                            prepend-avatar="https://cdn-icons-png.flaticon.com/512/147/147144.png"
-                        >
-                        </v-list-item>
-                        <v-icon
-                            class="hand"
-                            icon="mdi-hand-wave"
-                            :title="'wave at ' + friend.name"
-                            @click="wave($event, friend.id)"
-                        />
-                    </v-list>
-                </div>
-            </aside>
+
+                <!-- leave group -->
+                <v-btn
+                    prepend-icon="mdi-logout-variant"
+                    variant="outlined"
+                    class="mb-3"
+                    @click="leaveGroup"
+                >
+                    Leave group
+                </v-btn>
+            </div>
         </main>
 
         <!-- display image in full size -->
@@ -242,7 +316,7 @@ export default {
             myMessage: "",
             messageStatus: null,
             messages: [],
-            users: [],
+            onlineUsers: [],
             friend: null,
             group: null,
             waveMessage: null,
@@ -253,6 +327,8 @@ export default {
             pagination: 0,
             isLoadingMessages: false,
             isDisplaySeeMoreBtn: true,
+            isExpanded: false,
+            groupMembers: [],
         };
     },
     computed: {
@@ -274,12 +350,10 @@ export default {
                 if (params.type === "group") {
                     this.friend = null;
                     this.getOnlineUsers();
-                    this.getGroup()
-                        .then(() => (this.setPageTitle()));
+                    this.getGroup().then(() => this.setPageTitle());
                 } else {
-                    this.users = [];
-                    this.getFriend()
-                        .then(() => (this.setPageTitle()));
+                    this.onlineUsers = [];
+                    this.getFriend().then(() => this.setPageTitle());
                 }
 
                 this.getMessages();
@@ -337,6 +411,7 @@ export default {
                         "/chat/message",
                         {
                             message,
+                            type: "text",
                             friend_id:
                                 this.$route.params.type == "private"
                                     ? this.$route.params.id
@@ -441,7 +516,7 @@ export default {
             axiosClient
                 .get("/logged-in-users")
                 .then((result) => {
-                    this.users = result.data;
+                    this.onlineUsers = result.data;
                 })
                 .catch((err) => {
                     console.log(err);
@@ -449,9 +524,9 @@ export default {
 
             Echo.private("notifications").listen("UserSessionChange", (e) => {
                 if (e.type === "connected") {
-                    this.users.push(e.user);
+                    this.onlineUsers.push(e.user);
                 } else {
-                    this.users = this.users.filter(
+                    this.onlineUsers = this.onlineUsers.filter(
                         (user) => user.id !== e.user.id
                     );
                 }
@@ -589,6 +664,65 @@ export default {
             document.body.appendChild(link);
             link.click();
         },
+
+        expand() {
+            this.getGroupMembers().then(() => {
+                const el = this.$refs.expantionPanel;
+                this.$refs.expantionPanel.classList.toggle("active");
+                this.isExpanded = !this.isExpanded;
+            });
+        },
+
+        async getGroupMembers() {
+            if (!this.groupMembers) return; //fetch it only once on the first click
+
+            try {
+                const result = await axiosClient.get(
+                    `/group-members/${this.group.id}`
+                );
+                this.groupMembers = result.data;
+            } catch (err) {
+                console.log(err);
+            }
+        },
+
+        async sendInfoMessage(message) {
+            try {
+                await axiosClient.post(
+                    "/chat/message",
+                    {
+                        message: message.body,
+                        type: "info",
+                        group_id: this.$route.params.id,
+                    },
+                    {
+                        headers: {
+                            "X-Socket-Id": Echo.socketId(),
+                        },
+                    }
+                );
+
+                this.messages.push(message);
+            } catch (error) {
+                console.log(err);
+            }
+        },
+
+        async leaveGroup() {
+            const message = {
+                body: `${this.user.name} left the group`,
+                type: "info",
+                created_at: this.moment().toISOString(),
+            };
+            try {
+                await axiosClient.delete(`/group-members/${this.userId}`);
+                await this.sendInfoMessage(message);
+
+                this.$router.push({ name: "dashboard" });
+            } catch (err) {
+                console.log(err);
+            }
+        },
     },
 };
 </script>
@@ -603,6 +737,8 @@ export default {
 }
 main#app {
     height: 90vh;
+    display: flex;
+    column-gap: 15px;
 }
 .chat-area {
     /*   border: 1px solid #ccc; */
@@ -613,8 +749,8 @@ main#app {
     padding: 1em;
     padding-bottom: 100px;
     overflow: auto;
-    max-width: 50%;
-    margin: 0 auto 2em auto;
+    width: 50%;
+    /* margin: 0 auto 2em auto; */
     box-shadow: 2px 2px 5px 2px rgba(0, 0, 0, 0.3);
 }
 /* chat area scrollbar */
@@ -664,7 +800,7 @@ main#app {
         color-stop(0.86, rgb(56, 119, 249))
     );
     color: white;
-    margin-left: 50%;
+    margin-left: auto;
     margin-bottom: 10px;
 }
 .message-in {
@@ -672,6 +808,19 @@ main#app {
     color: black;
     margin-top: 25px;
 }
+
+.message-info {
+    font-size: 0.9rem;
+    color: #8b6767;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px 0;
+    font-family: "Circular-Loom";
+    line-height: 15px;
+}
+
 .message-status {
     position: absolute;
     bottom: 5px;
@@ -740,7 +889,7 @@ main#app {
     animation: wave 0.5s linear infinite;
 }
 
-.options {
+.chat-area .options {
     position: absolute;
     right: 32px;
     top: 14px;
@@ -797,6 +946,17 @@ main#app {
 
 .vuemdplayer {
     min-height: 200px;
+}
+
+#expantionPanel {
+    max-height: 0px;
+    overflow: hidden;
+    transition: max-height 0.5s ease-in-out 0s;
+}
+
+#expantionPanel.active {
+    max-height: 500px;
+    overflow-y: auto;
 }
 
 @keyframes wave {

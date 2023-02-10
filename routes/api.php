@@ -43,3 +43,6 @@ Route::get('chat/messages/{type}/{id}', [ChatController::class, 'getMessages']);
 Route::post('chat/wave/{id}', [ChatController::class, 'wave']);
 
 Route::apiResource('group', GroupController::class);
+Route::get('group-members/{group_id}', [GroupController::class, 'showMembers']);
+Route::delete('group-members/{user_id}', [GroupController::class, 'deleteMember']);
+Route::get('group-members/{group_id}/{user_id}', [GroupController::class, 'isMember']);

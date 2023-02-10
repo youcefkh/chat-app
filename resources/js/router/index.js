@@ -60,18 +60,34 @@ const router = createRouter({
     routes,
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
+    let userId = null;
+    if(store.state.user.data.id) {
+        userId = store.state.user.data.id
+    }else {
+        const result = await axiosClient.get('/auth-user');
+        userId = result.data.id
+    }
+
     //set page title
     document.title = to.name.charAt(0).toUpperCase() + to.name.slice(1); //capitalize first letter
 
     if (to.meta.requiresAuth && !store.state.user.token) {
         next({ name: "login" });
+
     } else if (!to.meta.requiresAuth && store.state.user.token) {
         //for login and register
         next({ name: "dashboard" });
-    } else {
+
+    }else if(to.name == 'chat' && to.params.type == 'group') {
+        //protect chat groups
+        const result = await axiosClient.get(`/group-members/${to.params.id}/${userId}`)
+        !result.data.isMember ? next({ name: "dashboard" }) : next();
+
+    }else {
         next();
     }
+
 
     //random request to the server to keep on track the user's last activity whenever he opens a new page
     axiosClient.get("/track-activity")

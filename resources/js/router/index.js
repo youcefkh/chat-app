@@ -65,8 +65,12 @@ router.beforeEach(async (to, from, next) => {
     if(store.state.user.data.id) {
         userId = store.state.user.data.id
     }else {
-        const result = await axiosClient.get('/auth-user');
-        userId = result.data.id
+        try {
+            const result = await axiosClient.get('/auth-user');
+            userId = result.data ? result.data.id : null;
+        } catch (error) {
+            console.log("you are logged out");
+        }
     }
 
     //set page title

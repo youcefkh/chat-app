@@ -87,6 +87,14 @@ class UserController extends Controller
     }
 
     /**
+     * search users by name
+     */
+    public function search(Request $request)
+    {
+        return User::where('name', 'LIKE', "%$request->search%")->take(4)->get(['id', 'name']);
+    }
+
+    /**
      * Get a validator for an incoming registration request.
      */
     protected function validator(Request $request)

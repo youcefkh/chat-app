@@ -162,11 +162,12 @@
                             </button>
                         </div>
 
+                        <!-- message as info -->
                         <div class="message-info" v-else>
                             <span>{{
                                 moment(message.created_at).fromNow()
                             }}</span>
-                            <span>{{ message.body }}</span>
+                            <span v-html="message.body"></span>
                         </div>
                     </div>
                 </div>
@@ -230,13 +231,125 @@
                 </p>
 
                 <!-- add new member -->
-                <v-btn
-                    prepend-icon="mdi-account-plus-outline"
-                    variant="outlined"
-                    class="mb-3"
-                >
-                    Add new member
-                </v-btn>
+                <v-dialog v-model="dialog" persistent>
+                    <template v-slot:activator="{ props }">
+                        <v-btn
+                            prepend-icon="mdi-account-plus-outline"
+                            variant="outlined"
+                            class="mb-3"
+                            v-bind="props"
+                        >
+                            Add new member
+                        </v-btn>
+                    </template>
+                    <v-card>
+                        <v-progress-linear v-if="isLoadingDialog" color="primary" indeterminate></v-progress-linear>
+                        <v-card-title class="d-flex">
+                            <v-icon icon="mdi-account-plus-outline" />
+                            <span class="ml-1 text-h5">Add new member</span>
+                        </v-card-title>
+                        <v-card-text>
+                            <v-container>
+                                <v-row>
+                                    <v-col cols="12">
+                                        <v-text-field
+                                            label="Search"
+                                            required
+                                            @keyup="searchUser"
+                                            v-model="memberSearchField"
+                                        ></v-text-field>
+                                    </v-col>
+                                </v-row>
+                                <div class="selected-members">
+                                    <v-list class="overflow-hidden d-flex">
+                                        <v-chip
+                                            class="ma-2"
+                                            closable
+                                            v-for="(
+                                                user, index
+                                            ) in selectedNewMembers"
+                                            :key="index"
+                                            @click="removeSelectedMember(user.id)"
+                                        >
+                                            <v-list-item
+                                                class="p-0"
+                                                :title="user.name"
+                                                prepend-avatar="https://cdn-icons-png.flaticon.com/512/147/147144.png"
+                                            ></v-list-item>
+                                        </v-chip>
+                                    </v-list>
+                                </div>
+
+                                <v-list
+                                    class="overflow-hidden suggested-members"
+                                >
+                                    <p class="text-h6">Suggestions</p>
+                                    <div v-if="!memberSearchField" class="info">
+                                        <span
+                                            >Start typing to get
+                                            suggestions</span
+                                        >
+                                    </div>
+                                    <div v-else-if="isLoadingSearch" class="info">
+                                        <span
+                                            >Loading ...</span
+                                        >
+                                    </div>
+                                    <div
+                                        v-else-if="
+                                            memberSearchField &&
+                                            suggestedUsers.length == 0"
+                                        class="info"
+                                    >
+                                        <span>No results found</span>
+                                    </div>
+                                    <v-row
+                                        v-else
+                                        v-for="(user, index) in suggestedUsers"
+                                        :key="index"
+                                        class="m-0 justify-space-between"
+                                    >
+                                        <v-col cols="8" class="p-0">
+                                            <label :for="user.id" class="w-100">
+                                                <v-list-item
+                                                    :title="user.name"
+                                                    :subtitle="user.email"
+                                                    prepend-avatar="https://cdn-icons-png.flaticon.com/512/147/147144.png"
+                                                ></v-list-item>
+                                            </label>
+                                        </v-col>
+                                        <v-col cols="4" class="p-0">
+                                            <v-checkbox
+                                                v-model="selectedNewMembers"
+                                                :value="user"
+                                                :id="user.id + ''"
+                                            ></v-checkbox>
+                                        </v-col>
+                                    </v-row>
+                                </v-list>
+                            </v-container>
+                        </v-card-text>
+
+                        <v-card-actions>
+                            <v-spacer></v-spacer>
+                            <v-btn
+                                color="primary"
+                                variant="text"
+                                @click="discardDialog"
+                            >
+                                Discard
+                            </v-btn>
+                            <v-btn
+                                color="primary"
+                                variant="text"
+                                @click="addMember"
+                                :disabled = "isLoadingDialog || selectedNewMembers.length == 0"
+                            >
+                                Add
+                            </v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-dialog>
 
                 <!-- show group members -->
                 <div class="mb-3">
@@ -329,6 +442,12 @@ export default {
             isDisplaySeeMoreBtn: true,
             isExpanded: false,
             groupMembers: [],
+            dialog: false,
+            selectedNewMembers: [],
+            suggestedUsers: [],
+            memberSearchField: null,
+            isLoadingSearch: false,
+            isLoadingDialog: false,
         };
     },
     computed: {
@@ -674,8 +793,6 @@ export default {
         },
 
         async getGroupMembers() {
-            if (!this.groupMembers) return; //fetch it only once on the first click
-
             try {
                 const result = await axiosClient.get(
                     `/group-members/${this.group.id}`
@@ -703,6 +820,7 @@ export default {
                 );
 
                 this.messages.push(message);
+                this.scrollToBottom();
             } catch (error) {
                 console.log(err);
             }
@@ -723,6 +841,56 @@ export default {
                 console.log(err);
             }
         },
+
+        async searchUser() {
+            if(!this.memberSearchField) return;
+            this.isLoadingSearch = true;
+            this.suggestedUsers = [];
+            try {
+                const result = await axiosClient.get(
+                    `group-members/search/${this.group.id}`,
+                    {
+                        params: {
+                            search: this.memberSearchField,
+                        },
+                    }
+                );
+                this.suggestedUsers = result.data;
+            } catch (error) {}
+            this.isLoadingSearch = false;
+        },
+
+        async addMember() {
+            this.isLoadingDialog = true;
+            const userIds = this.selectedNewMembers.map(
+                (memeber) => memeber.id
+            );
+            await axiosClient.post(`/group-members/${this.group.id}`, {
+                users: userIds,
+            });
+            const userNames = this.selectedNewMembers
+                .map((memeber) => memeber.name)
+                .toString();
+            const message = {
+                body: `${this.user.name} added ${userNames} to the group`,
+                type: "info",
+                created_at: this.moment().toISOString(),
+            };
+            await this.sendInfoMessage(message);
+            this.isLoadingDialog = false;
+            this.discardDialog();
+        },
+
+        discardDialog() {
+            this.dialog = false;
+            this.selectedNewMembers = [];
+            this.suggestedUsers = [];
+            this.memberSearchField = null;
+        },
+
+        removeSelectedMember(id) {
+            this.selectedNewMembers = this.selectedNewMembers.filter(member => member.id !== id)
+        }
     },
 };
 </script>
@@ -811,14 +979,14 @@ main#app {
 
 .message-info {
     font-size: 0.9rem;
+    padding: 0.8rem;
     color: #8b6767;
     width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 20px 0;
+    margin: 10px 0;
     font-family: "Circular-Loom";
-    line-height: 15px;
 }
 
 .message-status {
@@ -957,6 +1125,26 @@ main#app {
 #expantionPanel.active {
     max-height: 500px;
     overflow-y: auto;
+}
+
+.suggested-members label {
+    cursor: pointer;
+}
+
+.suggested-members .v-input__details {
+    display: none;
+}
+
+.suggested-members .v-checkbox .v-selection-control {
+    height: auto;
+}
+
+.suggested-members .info {
+    width: fit-content;
+    margin: 10px;
+    padding: 10px;
+    background: #f6f6f6;
+    color: #9b9595;
 }
 
 @keyframes wave {

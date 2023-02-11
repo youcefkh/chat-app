@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Models\Group;
 use App\Models\GroupMember;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
 class GroupController extends Controller
 {
     public function __construct()
     {
-       $this->middleware('auth:sanctum');
-       $this->middleware('XssSanitization', ['only' => ['store', 'update']]);
+        $this->middleware('auth:sanctum');
+        $this->middleware('XssSanitization', ['only' => ['store', 'update', 'search']]);
     }
 
     /**
@@ -85,9 +86,46 @@ class GroupController extends Controller
     public function isMember(int $group_id, int $user_id)
     {
         $result = GroupMember::where('group_id', $group_id)->where('user_id', $user_id)->exists();
-        
+
         return response()->json([
             'isMember' => $result,
         ], 200);
+    }
+
+    /**
+     * search members by name to add to a group
+     */
+    public function search(Request $request, $group_id)
+    {
+        //fetch users that don't belong to $group_id
+        $result1 = User::where('users.name', 'LIKE', "%$request->search%")->whereHas('groups', function ($query) use ($group_id) {
+            $query->where('groups.id', '!=', $group_id);
+        })->get();
+
+        //fetch users that don't belong to any group
+        $result2 = User::where('users.name', 'LIKE', "%$request->search%")->whereDoesntHave('groups')->get();
+
+        return $result1->merge($result2);
+    }
+
+    /**
+     * add new members to a group
+     */
+    public function addMembers(Request $request, $group_id)
+    {
+        $request->validate([
+            'users' => ['required']
+        ]);
+
+        foreach($request->users as $ids){
+            GroupMember::create([
+                'user_id' => $ids,
+                'group_id' => $group_id
+            ]);
+        }
+
+        return response()->json([
+            'message' => count($request->users) . ' members have been added',
+        ], 201);
     }
 }

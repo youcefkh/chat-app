@@ -32,6 +32,7 @@ Route::get('auth-user', [AuthController::class, 'user'])->middleware('auth:sanct
 
 Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
+Route::get('user/search', [UserController::class, 'search']);
 Route::apiResource('user', UserController::class);
 
 Route::get('track-activity', function (){return true;})->middleware('auth:sanctum');
@@ -45,4 +46,6 @@ Route::post('chat/wave/{id}', [ChatController::class, 'wave']);
 Route::apiResource('group', GroupController::class);
 Route::get('group-members/{group_id}', [GroupController::class, 'showMembers']);
 Route::delete('group-members/{user_id}', [GroupController::class, 'deleteMember']);
-Route::get('group-members/{group_id}/{user_id}', [GroupController::class, 'isMember']);
+Route::get('group-members/search/{group_id}', [GroupController::class, 'search'])->name('search');
+Route::get('group-members/{group_id}/{user_id}', [GroupController::class, 'isMember'])->name('isMember');
+Route::post('group-members/{group_id}', [GroupController::class, 'addMembers'])->name('addMembers');

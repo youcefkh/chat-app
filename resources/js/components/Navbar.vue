@@ -1,72 +1,120 @@
 <template>
-    <v-layout>
-        <v-navigation-drawer expand-on-hover rail>
-            <v-list>
-                <v-list-item
-                    prepend-avatar="https://cdn-icons-png.flaticon.com/512/147/147144.png"
-                    :title=user.name
-                    :subtitle=user.email
-                ></v-list-item>
-            </v-list>
+    <nav class="py-4">
+        <div class="logo">
+            <v-icon icon="mdi-wechat" />
+        </div>
 
-            <v-divider></v-divider>
+        <div class="links my-auto">
+            <ul role="tablist" class="side-menu-nav d-flex flex-column justify-content-center nav nav-pills">
+                <li v-for="link in links" :key="link.name" class="nav-item" :data-title="link.route.name">
+                    <router-link
+                        :to="{
+                            name: link.route.name,
+                            params: link.route.params,
+                            query: link.route.query
+                        }"
+                        class="nav-link"
+                    >
+                        <v-icon :icon="link.icon" />
+                    </router-link>
+                </li>
+            </ul>
+        </div>
 
-            <v-list density="compact" nav>
-                <router-link
-                    v-for="item in items"
-                    :key="item.title"
-                    :to="item.route"
-                    @click="logout(item.title)"
-                >
-                    <v-list-item
-                        :prepend-icon="item.icon"
-                        :title="item.title"
-                        :value="item.title"
-                    ></v-list-item>
-                </router-link>
-            </v-list>
-        </v-navigation-drawer>
-    </v-layout>
+        <div class="additional-links mt-auto">
+            <ul role="tablist" class="side-menu-nav d-flex flex-column justify-content-center nav nav-pills">
+                <li class="nav-item" data-title="logout">
+                    <button
+                        class="nav-link"
+                    >
+                        <v-icon icon="mdi-logout" />
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </nav>
 </template>
 
 <script>
-import axiosClient from '../axios';
-import store from "../store"
+import axiosClient from "../axios";
+import store from "../store";
 export default {
     data() {
         return {
             drawer: true,
-            items: [
-                { title: "Home", icon: "mdi-home-city", route: "/" },
-                { title: "My Account", icon: "mdi-account", route: "/my-account" },
-                { title: "Users", icon: "mdi-account-group-outline", route: "/users" },
-                { title: "Game", icon: "mdi-ferris-wheel", route: "/game" },
-                { title: "Chat", icon: "mdi-chat", route: "/chat/group/1",},
-                { title: "Logout", icon: "mdi-logout", route: "" },
+            links: [
+                {
+                    title: "Home",
+                    icon: "mdi-home-city",
+                    route: { name: "dashboard", params: null, query: {page: "profile"} },
+                },
+                {
+                    title: "Game",
+                    icon: "mdi-ferris-wheel",
+                    route: { name: "game", params: null, query: {page: "game"} },
+                },
+                {
+                    title: "Chat",
+                    icon: "mdi-chat",
+                    route: { name: "chat", params: { type: "group", id: 1 }, query: null },
+                },
             ],
             rail: true,
         };
     },
     computed: {
         user() {
-            return store.state.user.data
-        }
+            return store.state.user.data;
+        },
     },
     methods: {
-        logout(item){
-            if(item === "Logout"){
-                Echo.leave('notifications');
-                axiosClient.post('/logout')
+        logout(item) {
+            if (item === "Logout") {
+                Echo.leave("notifications");
+                axiosClient
+                    .post("/logout")
                     .then((result) => {
-                        store.dispatch('resetUser');
-                        this.$router.push({name: "login"});
-                    }).catch((err) => {
+                        store.dispatch("resetUser");
+                        this.$router.push({ name: "login" });
+                    })
+                    .catch((err) => {
                         console.log(err);
                     });
             }
-        }
-    }
+        },
+    },
 };
 </script>
 
-<style></style>
+<style scope>
+nav {
+    height: 100vh;
+    width: 75px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgb(15 34 58 / 12%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    z-index: 999;
+}
+nav .logo {
+    color: #7269ef !important;
+    font-size: 24px;
+}
+.side-menu-nav .nav-item .nav-link {
+    border-radius: 8px;
+    color: #878a92 !important;
+    font-size: 17px;
+    height: 56px;
+    line-height: 56px;
+    margin: 0 auto;
+    padding: 0;
+    text-align: center;
+    width: 56px;
+}
+.side-menu-nav .nav-item .nav-link[aria-current="page"], .side-menu-nav .nav-item .nav-link:hover {
+    background-color: #f7f7ff;
+    color: #7269ef !important;
+}
+</style>

@@ -6,6 +6,9 @@ import MyAccount from "../components/MyAccount.vue";
 import UsersList from "../components/UsersList.vue";
 import Game from "../components/Game.vue";
 import Chat from "../components/Chat.vue";
+
+import Profile from '../components/chat/Profile.vue';
+
 import store from "../store";
 import axios from "axios";
 import axiosClient from "../axios";
@@ -24,7 +27,7 @@ const routes = [
         meta: { requiresAuth: false },
     },
     {
-        path: "/",
+        path: "/dashbord",
         name: "dashboard",
         component: Dashboard,
         meta: { requiresAuth: true },
@@ -53,6 +56,14 @@ const routes = [
         component: Chat,
         meta: { requiresAuth: true },
     },
+
+    {
+        path: "/profile",
+        name: "profile",
+        component: Profile,
+        meta: { requiresAuth: true },
+    },
+
 ];
 
 const router = createRouter({

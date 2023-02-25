@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div :class="{'d-flex': isLoggedIn}">
         <navbar v-if="isLoggedIn" />
         <header v-else class="px-5 py-2 bg-blue-lighten-5">
             <nav
@@ -19,11 +19,8 @@
             </nav>
         </header>
 
-        <div class="main ml-15 mt-5">
-            <v-alert v-if="notification.type" :type="notification.type">{{
-                notification.message
-            }}</v-alert>
-            <router-view class="ml-10"></router-view>
+        <div class="main">
+            <router-view></router-view>
         </div>
     </div>
 </template>
@@ -54,13 +51,4 @@ export default {
 </script>
 
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-a, a:hover {
-    text-decoration: none;
-    color: #000;
-}
 </style>

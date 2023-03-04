@@ -1,7 +1,6 @@
 <template>
-    <div :class="{'d-flex': isLoggedIn}">
-        <navbar v-if="isLoggedIn" />
-        <header v-else class="px-5 py-2 bg-blue-lighten-5">
+    <div>
+        <header v-if="!isLoggedIn" class="px-5 py-2 bg-blue-lighten-5">
             <nav
                 class="d-flex flex-row justify-content-between align-items-center"
             >
@@ -26,12 +25,8 @@
 </template>
 
 <script>
-import Navbar from "./components/Navbar.vue";
 import store from "./store";
 export default {
-    components: {
-        Navbar,
-    },
     computed: {
         isLoggedIn() {
             return store.state.user.token ? true : false;

@@ -7,6 +7,7 @@ use App\Models\Group;
 use App\Models\GroupMember;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\Room;
 
 class GroupController extends Controller
 {
@@ -34,7 +35,22 @@ class GroupController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $group = Group::create([
+            'name' => $request->name
+        ]);
+
+        GroupMember::create([
+            'group_id' => $group->id,
+            'user_id' => $request->user()->id
+        ]);
+
+        Room::create([
+            'group_id' => $group->id
+        ]);
+
+        return response()->json([
+            "message" => $group->name . " group was created by " . $request->user()->name
+        ], 201);
     }
 
     /**

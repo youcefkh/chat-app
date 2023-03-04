@@ -6,8 +6,7 @@
             <v-icon class="wave ml-2" icon="mdi-hand-wave" />
         </div>
 
-        <main id="app" class="position-relative">
-            <!-- online users -->
+        <!-- online users 
             <div class="users-list w-25">
                 <div v-if="!friend">
                     <p class="h4">
@@ -56,7 +55,11 @@
                     </v-list>
                 </div>
             </div>
-
+            -->
+        <main id="app" class="position-relative">
+            <header class="border-bottom">
+                <h1>header</h1>
+            </header>
             <!-- chat box -->
             <div ref="chatArea" class="chat-area rounded">
                 <!-- messages -->
@@ -71,15 +74,14 @@
                                 'message-in': message.author !== 'me',
                             }"
                         >
-                            <span
-                                :title="
-                                    moment(message.created_at).format('LLL')
-                                "
-                                class="date"
-                                >{{
-                                    moment(message.created_at).fromNow()
-                                }}</span
-                            >
+                            <p class="date mb-0">
+                                <v-icon icon="mdi-clock-outline" class="mr-1" />
+                                <span
+                                    :title="
+                                        moment(message.created_at).format('LLL')"
+                                    >{{ formatDate(message.created_at) }}</span
+                                >
+                            </p>
 
                             <!-- display the message -->
                             <!-- message as an image -->
@@ -193,9 +195,9 @@
                     <v-text-field
                         v-model="myMessage"
                         id="person1-input"
-                        :counter="100"
+                        :counter="500"
                         placeholder="Type your message"
-                        maxlength="100"
+                        maxlength="500"
                         @keydown.enter="sendMessage('out')"
                         @blur="setCursorPosition"
                         ref="messageField"
@@ -222,179 +224,15 @@
                     </div>
                 </v-form>
             </div>
-
-            <!-- chat options -->
-            <div class="options w-25 pl-10" v-if="convType == 'group'">
-                <p class="h4">
-                    <v-icon icon="mdi-account-group-outline" />
-                    {{ group ? group.name : null }}
-                </p>
-
-                <!-- add new member -->
-                <v-dialog v-model="dialog" persistent>
-                    <template v-slot:activator="{ props }">
-                        <v-btn
-                            prepend-icon="mdi-account-plus-outline"
-                            variant="outlined"
-                            class="mb-3"
-                            v-bind="props"
-                        >
-                            Add new member
-                        </v-btn>
-                    </template>
-                    <v-card>
-                        <v-progress-linear v-if="isLoadingDialog" color="primary" indeterminate></v-progress-linear>
-                        <v-card-title class="d-flex">
-                            <v-icon icon="mdi-account-plus-outline" />
-                            <span class="ml-1 text-h5">Add new member</span>
-                        </v-card-title>
-                        <v-card-text>
-                            <v-container>
-                                <v-row>
-                                    <v-col cols="12">
-                                        <v-text-field
-                                            label="Search"
-                                            required
-                                            @keyup="searchUser"
-                                            v-model="memberSearchField"
-                                        ></v-text-field>
-                                    </v-col>
-                                </v-row>
-                                <div class="selected-members">
-                                    <v-list class="overflow-hidden d-flex">
-                                        <v-chip
-                                            class="ma-2"
-                                            closable
-                                            v-for="(
-                                                user, index
-                                            ) in selectedNewMembers"
-                                            :key="index"
-                                            @click="removeSelectedMember(user.id)"
-                                        >
-                                            <v-list-item
-                                                class="p-0"
-                                                :title="user.name"
-                                                prepend-avatar="https://cdn-icons-png.flaticon.com/512/147/147144.png"
-                                            ></v-list-item>
-                                        </v-chip>
-                                    </v-list>
-                                </div>
-
-                                <v-list
-                                    class="overflow-hidden suggested-members"
-                                >
-                                    <p class="text-h6">Suggestions</p>
-                                    <div v-if="!memberSearchField" class="info">
-                                        <span
-                                            >Start typing to get
-                                            suggestions</span
-                                        >
-                                    </div>
-                                    <div v-else-if="isLoadingSearch" class="info">
-                                        <span
-                                            >Loading ...</span
-                                        >
-                                    </div>
-                                    <div
-                                        v-else-if="
-                                            memberSearchField &&
-                                            suggestedUsers.length == 0"
-                                        class="info"
-                                    >
-                                        <span>No results found</span>
-                                    </div>
-                                    <v-row
-                                        v-else
-                                        v-for="(user, index) in suggestedUsers"
-                                        :key="index"
-                                        class="m-0 justify-space-between"
-                                    >
-                                        <v-col cols="8" class="p-0">
-                                            <label :for="user.id" class="w-100">
-                                                <v-list-item
-                                                    :title="user.name"
-                                                    :subtitle="user.email"
-                                                    prepend-avatar="https://cdn-icons-png.flaticon.com/512/147/147144.png"
-                                                ></v-list-item>
-                                            </label>
-                                        </v-col>
-                                        <v-col cols="4" class="p-0">
-                                            <v-checkbox
-                                                v-model="selectedNewMembers"
-                                                :value="user"
-                                                :id="user.id + ''"
-                                            ></v-checkbox>
-                                        </v-col>
-                                    </v-row>
-                                </v-list>
-                            </v-container>
-                        </v-card-text>
-
-                        <v-card-actions>
-                            <v-spacer></v-spacer>
-                            <v-btn
-                                color="primary"
-                                variant="text"
-                                @click="discardDialog"
-                            >
-                                Discard
-                            </v-btn>
-                            <v-btn
-                                color="primary"
-                                variant="text"
-                                @click="addMember"
-                                :disabled = "isLoadingDialog || selectedNewMembers.length == 0"
-                            >
-                                Add
-                            </v-btn>
-                        </v-card-actions>
-                    </v-card>
-                </v-dialog>
-
-                <!-- show group members -->
-                <div class="mb-3">
-                    <v-btn
-                        prepend-icon="mdi-account-group"
-                        :append-icon="
-                            isExpanded ? 'mdi-menu-up' : 'mdi-menu-down'
-                        "
-                        variant="outlined"
-                        @click="expand"
-                    >
-                        Group members
-                    </v-btn>
-                    <div ref="expantionPanel" id="expantionPanel">
-                        <v-list class="overflow-hidden" lines="one">
-                            <router-link
-                                v-for="(user, index) in groupMembers"
-                                :key="index"
-                                :to="{
-                                    name: 'chat',
-                                    params: { type: 'private', id: user.id },
-                                }"
-                                class="d-flex mb-2"
-                            >
-                                <v-list-item
-                                    :title="user.name"
-                                    :subtitle="user.email"
-                                    prepend-avatar="https://cdn-icons-png.flaticon.com/512/147/147144.png"
-                                ></v-list-item>
-                            </router-link>
-                        </v-list>
-                    </div>
-                </div>
-
-                <!-- leave group -->
-                <v-btn
-                    prepend-icon="mdi-logout-variant"
-                    variant="outlined"
-                    class="mb-3"
-                    @click="leaveGroup"
-                >
-                    Leave group
-                </v-btn>
-            </div>
         </main>
+
+        <!-- group options -->
+        <group-options
+            class="d-none"
+            v-if="convType == 'group'"
+            @sendInfoMessage="sendInfoMessage"
+            :group="group"
+        />
 
         <!-- display image in full size -->
         <div
@@ -415,21 +253,31 @@ import message from "../../audio/message.mp3";
 import EmojiPicker from "vue3-emoji-picker";
 import { VideoPlayer } from "vue-md-player";
 import moment from "moment";
+import GroupOptions from "./chat/GroupOptions.vue";
+import dateFormatter from "../mixins/dateFormatter";
 
 export default {
+    mixins: [dateFormatter],
+
+    props: {
+        chat: Object,
+    },
+
     components: {
         EmojiPicker,
         VideoPlayer,
+        GroupOptions,
     },
     data() {
         return {
+            convType: null,
+            convId: null,
             userId: null,
             moment: moment,
             recievedMessage: "",
             myMessage: "",
             messageStatus: null,
             messages: [],
-            onlineUsers: [],
             friend: null,
             group: null,
             waveMessage: null,
@@ -440,38 +288,28 @@ export default {
             pagination: 0,
             isLoadingMessages: false,
             isDisplaySeeMoreBtn: true,
-            isExpanded: false,
-            groupMembers: [],
-            dialog: false,
-            selectedNewMembers: [],
-            suggestedUsers: [],
-            memberSearchField: null,
-            isLoadingSearch: false,
-            isLoadingDialog: false,
         };
     },
+
     computed: {
-        convType() {
-            return this.$route.params.type;
-        },
         user() {
             return store.state.user.data;
         },
     },
 
     watch: {
-        "$route.params": {
+        chat: {
             handler(params) {
+                this.convType = params.type;
+                this.convId = params.id;
                 this.messages = [];
                 this.pagination = 0;
                 this.isDisplaySeeMoreBtn = true;
 
                 if (params.type === "group") {
                     this.friend = null;
-                    this.getOnlineUsers();
                     this.getGroup().then(() => this.setPageTitle());
                 } else {
-                    this.onlineUsers = [];
                     this.getFriend().then(() => this.setPageTitle());
                 }
 
@@ -480,6 +318,7 @@ export default {
                     this.receiveMessage();
                     this.receiveWave();
                 });
+                this.seeMessages();
             },
             immediate: true,
         },
@@ -532,13 +371,9 @@ export default {
                             message,
                             type: "text",
                             friend_id:
-                                this.$route.params.type == "private"
-                                    ? this.$route.params.id
-                                    : null,
+                                this.convType == "private" ? this.convId : null,
                             group_id:
-                                this.$route.params.type == "group"
-                                    ? this.$route.params.id
-                                    : null,
+                                this.convType == "group" ? this.convId : null,
                         },
                         {
                             headers: {
@@ -548,6 +383,7 @@ export default {
                     );
                     this.messages[messageIndex].body = result.data.message; //display message after sanitization
                     this.messages[messageIndex].status = "sent";
+                    this.triggerMessageEvent();
                 } catch (err) {
                     this.messages[messageIndex].status = "failed";
                 }
@@ -562,10 +398,8 @@ export default {
 
                 const file = target.files[i];
                 const type = file.type.split("/")[0];
-                const friend_id =
-                    this.convType == "private" ? this.$route.params.id : "";
-                const group_id =
-                    this.convType == "group" ? this.$route.params.id : "";
+                const friend_id = this.convType == "private" ? this.convId : "";
+                const group_id = this.convType == "group" ? this.convId : "";
                 formData.append("media", file);
                 formData.append("type", type);
                 formData.append("friend_id", friend_id);
@@ -592,6 +426,7 @@ export default {
                     })
                     .then(() => {
                         this.messages[messageIndex].status = "sent";
+                        this.triggerMessageEvent();
                     })
                     .catch((err) => {
                         this.messages[messageIndex].status = "failed";
@@ -602,8 +437,8 @@ export default {
         },
 
         receiveMessage() {
-            const convType = this.$route.params.type;
-            const recipientId = this.$route.params.id;
+            const convType = this.convType;
+            const recipientId = this.convId;
             const userId = this.userId;
             const channelName =
                 convType == "private"
@@ -627,36 +462,16 @@ export default {
                     var audio = new Audio(this.messageSound); // path to file
                     audio.volume = 0.3;
                     audio.play();
+
+                    //reset notifications counter
+                    this.seeMessages();
                 }
             );
         },
 
-        getOnlineUsers() {
-            axiosClient
-                .get("/logged-in-users")
-                .then((result) => {
-                    this.onlineUsers = result.data;
-                })
-                .catch((err) => {
-                    console.log(err);
-                });
-
-            Echo.private("notifications").listen("UserSessionChange", (e) => {
-                if (e.type === "connected") {
-                    this.onlineUsers.push(e.user);
-                } else {
-                    this.onlineUsers = this.onlineUsers.filter(
-                        (user) => user.id !== e.user.id
-                    );
-                }
-            });
-        },
-
         async getFriend() {
             try {
-                const result = await axiosClient.get(
-                    `/user/${this.$route.params.id}`
-                );
+                const result = await axiosClient.get(`/user/${this.convId}`);
                 this.friend = result.data;
             } catch (err) {
                 console.log(err);
@@ -665,9 +480,7 @@ export default {
 
         async getGroup() {
             try {
-                const result = await axiosClient.get(
-                    `/group/${this.$route.params.id}`
-                );
+                const result = await axiosClient.get(`/group/${this.convId}`);
                 this.group = result.data;
             } catch (err) {
                 console.log(err);
@@ -685,8 +498,8 @@ export default {
             this.pagination++;
             this.isLoadingMessages = true;
 
-            const type = this.$route.params.type;
-            const id = this.$route.params.id;
+            const type = this.convType;
+            const id = this.convId;
             axiosClient
                 .get(`/chat/messages/${type}/${id}?page=${this.pagination}`)
                 .then((result) => {
@@ -784,25 +597,6 @@ export default {
             link.click();
         },
 
-        expand() {
-            this.getGroupMembers().then(() => {
-                const el = this.$refs.expantionPanel;
-                this.$refs.expantionPanel.classList.toggle("active");
-                this.isExpanded = !this.isExpanded;
-            });
-        },
-
-        async getGroupMembers() {
-            try {
-                const result = await axiosClient.get(
-                    `/group-members/${this.group.id}`
-                );
-                this.groupMembers = result.data;
-            } catch (err) {
-                console.log(err);
-            }
-        },
-
         async sendInfoMessage(message) {
             try {
                 await axiosClient.post(
@@ -810,7 +604,7 @@ export default {
                     {
                         message: message.body,
                         type: "info",
-                        group_id: this.$route.params.id,
+                        group_id: this.convId,
                     },
                     {
                         headers: {
@@ -821,76 +615,28 @@ export default {
 
                 this.messages.push(message);
                 this.scrollToBottom();
+                this.triggerMessageEvent();
             } catch (error) {
                 console.log(err);
             }
         },
 
-        async leaveGroup() {
-            const message = {
-                body: `${this.user.name} left the group`,
-                type: "info",
-                created_at: this.moment().toISOString(),
+        triggerMessageEvent() {
+            this.$emit("messageSent");
+        },
+
+        async seeMessages() {
+            const conversation = {
+                type: this.convType,
+                id: this.convId,
             };
             try {
-                await axiosClient.delete(`/group-members/${this.userId}`);
-                await this.sendInfoMessage(message);
-
-                this.$router.push({ name: "dashboard" });
-            } catch (err) {
-                console.log(err);
+                await axiosClient.put("/chat/see-messages", conversation);
+                this.$emit("seeMessages", conversation);
+            } catch (error) {
+                console.log(error);
             }
         },
-
-        async searchUser() {
-            if(!this.memberSearchField) return;
-            this.isLoadingSearch = true;
-            this.suggestedUsers = [];
-            try {
-                const result = await axiosClient.get(
-                    `group-members/search/${this.group.id}`,
-                    {
-                        params: {
-                            search: this.memberSearchField,
-                        },
-                    }
-                );
-                this.suggestedUsers = result.data;
-            } catch (error) {}
-            this.isLoadingSearch = false;
-        },
-
-        async addMember() {
-            this.isLoadingDialog = true;
-            const userIds = this.selectedNewMembers.map(
-                (memeber) => memeber.id
-            );
-            await axiosClient.post(`/group-members/${this.group.id}`, {
-                users: userIds,
-            });
-            const userNames = this.selectedNewMembers
-                .map((memeber) => memeber.name)
-                .toString();
-            const message = {
-                body: `${this.user.name} added ${userNames} to the group`,
-                type: "info",
-                created_at: this.moment().toISOString(),
-            };
-            await this.sendInfoMessage(message);
-            this.isLoadingDialog = false;
-            this.discardDialog();
-        },
-
-        discardDialog() {
-            this.dialog = false;
-            this.selectedNewMembers = [];
-            this.suggestedUsers = [];
-            this.memberSearchField = null;
-        },
-
-        removeSelectedMember(id) {
-            this.selectedNewMembers = this.selectedNewMembers.filter(member => member.id !== id)
-        }
     },
 };
 </script>
@@ -904,28 +650,24 @@ export default {
     color: white;
 }
 main#app {
-    height: 90vh;
+    height: 100vh;
     display: flex;
-    column-gap: 15px;
+    flex-direction: column;
+    box-shadow: 0 2px 4px rgb(15 34 58 / 12%);
 }
 .chat-area {
     /*   border: 1px solid #ccc; */
     display: flex;
     flex-direction: column-reverse;
     background: white;
-    height: 90vh;
+    height: 100vh;
     padding: 1em;
     padding-bottom: 100px;
     overflow: auto;
-    width: 50%;
-    /* margin: 0 auto 2em auto; */
-    box-shadow: 2px 2px 5px 2px rgba(0, 0, 0, 0.3);
 }
 /* chat area scrollbar */
 .chat-area::-webkit-scrollbar-track {
-    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
     background-color: #f5f5f5;
-    border-radius: 10px;
 }
 
 .chat-area::-webkit-scrollbar {
@@ -935,17 +677,19 @@ main#app {
 
 .chat-area::-webkit-scrollbar-thumb {
     border-radius: 10px;
-    background-image: -webkit-gradient(
+    background: #7269ef;
+    /* background-image: -webkit-gradient(
         linear,
         left bottom,
         left top,
         color-stop(0.44, rgb(56, 119, 249)),
         color-stop(0.5, rgb(28, 108, 207)),
         color-stop(0.74, rgb(28, 58, 148))
-    );
+    ); */
 }
 .message {
-    width: 45%;
+    width: 25%;
+    max-width: 45%;
     border-radius: 10px;
     padding: 0.5em;
     /*   margin-bottom: .5em; */
@@ -957,22 +701,27 @@ main#app {
     flex-direction: column-reverse;
     gap: 5px;
 }
+
+.message:has(.media-container) {
+    width: 30%;
+}
+
 .message-out {
-    /*background: #407fff;*/
-    background-image: -webkit-gradient(
+    background: #7269ef;
+    /* background-image: -webkit-gradient(
         linear,
         left top,
         right bottom,
         color-stop(0.44, rgb(28, 58, 148)),
         color-stop(0.72, rgb(28, 108, 207)),
         color-stop(0.86, rgb(56, 119, 249))
-    );
+    ); */
     color: white;
     margin-left: auto;
     margin-bottom: 10px;
 }
 .message-in {
-    background: #f1f0f0;
+    background: #f5f7fb;
     color: black;
     margin-top: 25px;
 }
@@ -1002,9 +751,17 @@ main#app {
     font-weight: 600;
 }
 .message .date {
-    margin-left: auto;
-    font-size: 0.7rem;
+    text-align: right;
+    font-size: 10px;
     font-weight: 500;
+}
+
+.message-out .date {
+    color: #f5f7fb;
+}
+
+.message-in .date {
+    color: #7a7f9a;
 }
 
 .message button.download {
@@ -1025,8 +782,9 @@ main#app {
 #person1-form {
     position: absolute;
     bottom: 0;
-    width: 46%;
+    width: calc(100% - 45px);
 }
+
 #person1-input {
     padding: 0.5em;
 }
@@ -1114,37 +872,6 @@ main#app {
 
 .vuemdplayer {
     min-height: 200px;
-}
-
-#expantionPanel {
-    max-height: 0px;
-    overflow: hidden;
-    transition: max-height 0.5s ease-in-out 0s;
-}
-
-#expantionPanel.active {
-    max-height: 500px;
-    overflow-y: auto;
-}
-
-.suggested-members label {
-    cursor: pointer;
-}
-
-.suggested-members .v-input__details {
-    display: none;
-}
-
-.suggested-members .v-checkbox .v-selection-control {
-    height: auto;
-}
-
-.suggested-members .info {
-    width: fit-content;
-    margin: 10px;
-    padding: 10px;
-    background: #f6f6f6;
-    color: #9b9595;
 }
 
 @keyframes wave {

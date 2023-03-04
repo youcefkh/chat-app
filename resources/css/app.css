@@ -144,3 +144,7 @@ a, a:hover {
 [data-title] {
     position: relative;
 }
+
+.search .v-input__details {
+    display: none;
+}

@@ -9,6 +9,8 @@ class Group extends Model
 {
     use HasFactory;
 
+    protected $fillable = ['name'];
+
     public function users()
     {
         return $this->belongsToMany(User::class, 'group_members');

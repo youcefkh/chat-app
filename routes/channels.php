@@ -33,3 +33,7 @@ Broadcast::channel('chat.{type}.{id}', function ($user, $type, $id) {
 Broadcast::channel('chat.wave.{id}', function ($user, $id) {
     return $user->id == $id;
 });
+
+Broadcast::channel('messages.{id}', function ($user, $id) {
+    return $user->id == $id;
+});

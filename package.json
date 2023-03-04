@@ -26,6 +26,7 @@
     },
     "dependencies": {
         "moment": "^2.29.4",
+        "tiny-emitter": "^2.1.0",
         "vue-emoji-picker": "^1.0.3",
         "vue-md-player": "^2.0.3",
         "vue-router": "^4.1.6",

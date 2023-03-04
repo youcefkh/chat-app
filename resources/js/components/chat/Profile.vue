@@ -1,7 +1,7 @@
 <template>
     <div class="my-profile">
         <header>
-            <h4 class="title px-5 pt-4">My Profile</h4>
+            <h4 class="title">My Profile</h4>
         </header>
 
         <div class="d-flex flex-column align-center my-5">
@@ -25,7 +25,7 @@
 
         <hr class="my-10 text-gray-400" />
 
-        <div class="infos px-6">
+        <div class="infos px-3">
             <div class="about bg-white p-6 rounded">
                 <header
                     class="mb-8 d-flex justify-content-between align-items-center"
@@ -34,15 +34,17 @@
                         <v-icon class="mr-1" icon="mdi-account-details" />
                         <span>About</span>
                     </h5>
-                    <v-btn
-                        variant="outlined"
-                        size="x-small"
-                        icon
-                        color="info"
-                        data-title="Edit"
-                    >
-                        <v-icon>mdi-pencil</v-icon>
-                    </v-btn>
+
+                    <div data-title="Edit">
+                        <v-btn
+                            variant="outlined"
+                            size="x-small"
+                            icon
+                            color="info"
+                        >
+                            <v-icon>mdi-pencil</v-icon>
+                        </v-btn>
+                    </div>
                 </header>
 
                 <div class="mb-7">
@@ -96,7 +98,7 @@ export default {
 };
 </script>
 
-<style scope>
+<style scoped>
 .img-container {
     height: 100px;
     width: 100px;

@@ -40,6 +40,8 @@ Route::get('logged-in-users', [UserController::class, 'loggedInUsers'])->middlew
 
 Route::post('chat/message', [ChatController::class, 'storeMessage']);
 Route::get('chat/messages/{type}/{id}', [ChatController::class, 'getMessages']);
+Route::get('chat/messages-history', [ChatController::class, 'messagesHistory']);
+Route::put('chat/see-messages', [ChatController::class, 'seeMessages']);
 
 Route::post('chat/wave/{id}', [ChatController::class, 'wave']);
 

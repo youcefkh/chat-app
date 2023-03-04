@@ -2,12 +2,9 @@ import { createRouter, createWebHistory } from "vue-router";
 import Login from "../components/Login.vue";
 import Register from "../components/Register.vue";
 import Dashboard from "../components/Dashboard.vue";
-import MyAccount from "../components/MyAccount.vue";
-import UsersList from "../components/UsersList.vue";
 import Game from "../components/Game.vue";
 import Chat from "../components/Chat.vue";
-
-import Profile from '../components/chat/Profile.vue';
+import UsersList from "../components/UsersList.vue";
 
 import store from "../store";
 import axios from "axios";
@@ -27,21 +24,9 @@ const routes = [
         meta: { requiresAuth: false },
     },
     {
-        path: "/dashbord",
+        path: "/dashbord/chat/:type/:id",
         name: "dashboard",
         component: Dashboard,
-        meta: { requiresAuth: true },
-    },
-    {
-        path: "/my-account",
-        name: "account",
-        component: MyAccount,
-        meta: { requiresAuth: true },
-    },
-    {
-        path: "/users",
-        name: "users",
-        component: UsersList,
         meta: { requiresAuth: true },
     },
     {
@@ -51,16 +36,15 @@ const routes = [
         meta: { requiresAuth: true },
     },
     {
+        path: "/test",
+        name: "test",
+        component: UsersList,
+        meta: { requiresAuth: true },
+    },
+    {
         path: "/chat/:type/:id",
         name: "chat",
         component: Chat,
-        meta: { requiresAuth: true },
-    },
-
-    {
-        path: "/profile",
-        name: "profile",
-        component: Profile,
         meta: { requiresAuth: true },
     },
 

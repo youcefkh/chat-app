@@ -12,5 +12,5 @@ class Recipient extends Model
     use HasFactory;
     protected $table = 'message_recipients';
 
-    protected $fillable = ['message_id', 'recipient_id', 'recipient_group_id', 'is_seen'];
+    protected $fillable = ['message_id', 'recipient_id', 'recipient_group_id', 'room_id', 'is_seen'];
 }

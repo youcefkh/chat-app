@@ -6,7 +6,7 @@
 
         <div class="links my-auto">
             <ul role="tablist" class="side-menu-nav d-flex flex-column justify-content-center nav nav-pills">
-                <li v-for="link in links" :key="link.name" class="nav-item" :data-title="link.route.name">
+                <li v-for="link in links" :key="link.name" class="nav-item" :data-title="link.title">
                     <router-link
                         :to="{
                             name: link.route.name,
@@ -14,6 +14,7 @@
                             query: link.route.query
                         }"
                         class="nav-link"
+                        :class="{'active-link': link.route.query.page == currentPage}"
                     >
                         <v-icon :icon="link.icon" />
                     </router-link>
@@ -23,7 +24,7 @@
 
         <div class="additional-links mt-auto">
             <ul role="tablist" class="side-menu-nav d-flex flex-column justify-content-center nav nav-pills">
-                <li class="nav-item" data-title="logout">
+                <li class="nav-item" data-title="Logout" @click="logout">
                     <button
                         class="nav-link"
                     >
@@ -41,52 +42,62 @@ import store from "../store";
 export default {
     data() {
         return {
-            drawer: true,
+            currentPage: "profile",
             links: [
                 {
-                    title: "Home",
-                    icon: "mdi-home-city",
+                    title: "My Profile",
+                    icon: "mdi-account-circle-outline",
                     route: { name: "dashboard", params: null, query: {page: "profile"} },
+                },
+                {
+                    title: "Chats",
+                    icon: "mdi-message-processing-outline",
+                    route: { name: "dashboard", params: null, query: {page: "chats"} },
                 },
                 {
                     title: "Game",
                     icon: "mdi-ferris-wheel",
                     route: { name: "game", params: null, query: {page: "game"} },
                 },
-                {
-                    title: "Chat",
-                    icon: "mdi-chat",
-                    route: { name: "chat", params: { type: "group", id: 1 }, query: null },
-                },
             ],
-            rail: true,
         };
     },
+    
+    watch: {
+        "$route.query.page": {
+            handler(value) {
+                if(value) {
+                    this.currentPage = value;
+                }
+            },
+            deep: true,
+            immediate: true,
+        },
+    },
+
     computed: {
         user() {
             return store.state.user.data;
         },
     },
     methods: {
-        logout(item) {
-            if (item === "Logout") {
-                Echo.leave("notifications");
-                axiosClient
-                    .post("/logout")
-                    .then((result) => {
-                        store.dispatch("resetUser");
-                        this.$router.push({ name: "login" });
-                    })
-                    .catch((err) => {
-                        console.log(err);
-                    });
-            }
+        logout() {
+            Echo.leave("notifications");
+            axiosClient
+                .post("/logout")
+                .then((result) => {
+                    store.dispatch("resetUser");
+                    this.$router.push({ name: "login" });
+                })
+                .catch((err) => {
+                    console.log(err);
+                });
         },
     },
 };
 </script>
 
-<style scope>
+<style scoped>
 nav {
     height: 100vh;
     width: 75px;
@@ -113,7 +124,7 @@ nav .logo {
     text-align: center;
     width: 56px;
 }
-.side-menu-nav .nav-item .nav-link[aria-current="page"], .side-menu-nav .nav-item .nav-link:hover {
+.side-menu-nav .nav-item .nav-link.active-link, .side-menu-nav .nav-item .nav-link:hover {
     background-color: #f7f7ff;
     color: #7269ef !important;
 }

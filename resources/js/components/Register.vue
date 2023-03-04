@@ -103,7 +103,7 @@ export default {
                     store.dispatch('setToken', res.data.token);
                     store.dispatch('setUserData', res.data.token);
                     store.dispatch('initializeEcho');
-                    this.$router.push({name: 'dashboard'})
+                    this.$router.push({name: 'dashboard', params: {type: 'group', id: 1}})
                 })
                 .catch(err => {
                     this.validationErrors = err.response.data.errors

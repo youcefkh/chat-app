@@ -57,14 +57,46 @@
             </div>
             -->
         <main id="app" class="position-relative">
-            <header class="border-bottom">
-                <h1>header</h1>
+            <header class="border-bottom p-4">
+                <div
+                    v-if="convType == 'private' && friend || convType == 'group' && group"
+                    class="d-flex align-items-center gap-3"
+                >
+                    <thumbnail
+                        :image="
+                            convType == 'private'
+                                ? friend.picture
+                                : group.picture"
+                        :onlineUsers="convType == 'private' ? onlineUsers : null"
+                        :user_id="convType == 'private' ? friend.id : null"
+                        :onlineIcon="convType == 'private' ? true : false"
+                        style="scale: 1.2;"
+                    />
+                    <h5 class="mb-0">
+                        {{ convType == "private" ? friend.name : group.name }}
+                    </h5>
+                </div>
             </header>
             <!-- chat box -->
             <div ref="chatArea" class="chat-area rounded">
                 <!-- messages -->
                 <div>
-                    <div v-for="(message, index) in messages" :key="index">
+                    <div
+                        v-for="(message, index) in messages"
+                        :key="index"
+                        class="d-flex align-items-end gap-2"
+                        :class="{ 'flex-row-reverse': message.author == 'me' }"
+                    >
+                        <!-- author thumnail -->
+                        <div v-if="message.type !== 'info'">
+                            <thumbnail
+                                :image="message.thumbnail"
+                                :onlineIcon="false"
+                                :data-title="message.author"
+                                data-title-position="bottom"
+                            />
+                        </div>
+
                         <!-- if message is not of type info -->
                         <div
                             v-if="message.type !== 'info'"
@@ -78,7 +110,8 @@
                                 <v-icon icon="mdi-clock-outline" class="mr-1" />
                                 <span
                                     :title="
-                                        moment(message.created_at).format('LLL')"
+                                        moment(message.created_at).format('LLL')
+                                    "
                                     >{{ formatDate(message.created_at) }}</span
                                 >
                             </p>
@@ -127,14 +160,6 @@
                                 {{ message.body }}
                             </p>
 
-                            <!-- author -->
-                            <span
-                                v-if="message.author !== 'me'"
-                                class="message-author"
-                            >
-                                {{ message.author }}
-                            </span>
-
                             <!-- message status -->
                             <span
                                 v-if="message.author === 'me' && message.status"
@@ -175,19 +200,21 @@
                 </div>
 
                 <!-- see more button -->
-                <div ref="seeMoreBtn" class="m-auto" v-if="isDisplaySeeMoreBtn">
-                    <v-btn
-                        class="mb-5"
-                        :prepend-icon="
-                            isLoadingMessages
-                                ? 'mdi-loading'
-                                : 'mdi-plus-box-outline'
-                        "
-                        @click="getMessages(false)"
-                        :disabled="isLoadingMessages"
-                    >
-                        {{ isLoadingMessages ? "Loading" : "See more" }}
-                    </v-btn>
+                <div ref="seeMoreBtn" class="see-more my-auto" v-if="isDisplaySeeMoreBtn">
+                    <div>
+                        <v-btn
+                            class="mb-0"
+                            :prepend-icon="
+                                isLoadingMessages
+                                    ? 'mdi-loading'
+                                    : 'mdi-plus-box-outline'
+                            "
+                            @click="getMessages(false)"
+                            :disabled="isLoadingMessages"
+                        >
+                            {{ isLoadingMessages ? "Loading" : "See more" }}
+                        </v-btn>
+                    </div>
                 </div>
 
                 <!-- Message input field -->
@@ -255,18 +282,21 @@ import { VideoPlayer } from "vue-md-player";
 import moment from "moment";
 import GroupOptions from "./chat/GroupOptions.vue";
 import dateFormatter from "../mixins/dateFormatter";
+import Thumbnail from "./chat/Thumbnail.vue";
 
 export default {
     mixins: [dateFormatter],
 
     props: {
         chat: Object,
+        onlineUsers: Array,
     },
 
     components: {
         EmojiPicker,
         VideoPlayer,
         GroupOptions,
+        Thumbnail,
     },
     data() {
         return {
@@ -358,6 +388,7 @@ export default {
                         author: "me",
                         status: "pending",
                         created_at: this.moment().toISOString(),
+                        thumbnail: this.user.picture,
                     }) - 1;
 
                 const message = this.myMessage;
@@ -414,6 +445,7 @@ export default {
                         author: "me",
                         status: "pending",
                         created_at: this.moment().toISOString(),
+                        thumbnail: this.user.picture,
                     }) - 1;
                 this.scrollToBottom();
 
@@ -455,6 +487,7 @@ export default {
                         type: e.message.type,
                         author: e.user.name,
                         created_at: e.message.created_at,
+                        thumbnail: e.user.picture,
                     });
                     this.scrollToBottom();
 
@@ -514,6 +547,7 @@ export default {
                                     ? "me"
                                     : data.user_name,
                             created_at: data.created_at,
+                            thumbnail: data.user_pic,
                         }));
                         this.messages.unshift(...newMessages);
 
@@ -655,6 +689,11 @@ main#app {
     flex-direction: column;
     box-shadow: 0 2px 4px rgb(15 34 58 / 12%);
 }
+
+main > header {
+    min-height: 89px;
+}
+
 .chat-area {
     /*   border: 1px solid #ccc; */
     display: flex;
@@ -718,7 +757,7 @@ main#app {
     ); */
     color: white;
     margin-left: auto;
-    margin-bottom: 10px;
+    margin-top: 15px;
 }
 .message-in {
     background: #f5f7fb;
@@ -872,6 +911,22 @@ main#app {
 
 .vuemdplayer {
     min-height: 200px;
+}
+
+.see-more {
+    width: 100%;
+    min-height: 1px;
+    background: #ffeaea;
+    position: relative;
+}
+
+.see-more > div {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 10px;
+    background: #fff;
 }
 
 @keyframes wave {

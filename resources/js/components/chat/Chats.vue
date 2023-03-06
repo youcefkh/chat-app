@@ -28,15 +28,7 @@
                     @click="openConversation(conv.conv_type, conv.conv_id)"
                 >
                     <div class="position-relative" style="min-width: 50px">
-                        <div class="wrapper">
-                            <div class="img-container">
-                                <img :src="conv.thumbnail" alt="" />
-                            </div>
-                            <div
-                                v-if="isOnline(conv.user_id)"
-                                class="online-icon"
-                            ></div>
-                        </div>
+                        <thumbnail :user_id="conv.user_id" :onlineUsers="onlineUsers" :image="conv.thumbnail"/>
                     </div>
 
                     <div class="flex-grow-1 overflow-hidden">
@@ -79,22 +71,25 @@ import axiosClient from "../../axios";
 import store from "../../store";
 import OnlineUsers from "./OnlineUsers.vue";
 import dateFormatter from "../../mixins/dateFormatter";
+import Thumbnail from './Thumbnail.vue';
 
 export default {
     mixins: [dateFormatter],
 
     props: {
         messagesHistory: Array,
+        onlineUsers: Array
     },
 
     data() {
         return {
-            onlineUsers: [],
+            //
         };
     },
 
     components: {
         OnlineUsers,
+        Thumbnail
     },
 
     computed: {
@@ -108,33 +103,6 @@ export default {
     },
 
     methods: {
-        getOnlineUsers() {
-            axiosClient
-                .get("/logged-in-users")
-                .then((result) => {
-                    this.onlineUsers = result.data;
-                })
-                .catch((err) => {
-                    console.log(err);
-                });
-
-            Echo.private("notifications").listen("UserSessionChange", (e) => {
-                if (e.type === "connected") {
-                    this.onlineUsers.push(e.user);
-                } else {
-                    this.onlineUsers = this.onlineUsers.filter(
-                        (user) => user.id !== e.user.id
-                    );
-                }
-            });
-        },
-
-        isOnline(user_id) {
-            return this.onlineUsers.some((user) => {
-                return user.id === user_id;
-            });
-        },
-
         openConversation(type, id) {
             const query = this.$route.query;
             this.$router.push({
@@ -153,7 +121,6 @@ export default {
 
     mounted() {
         this.recieveMessages();
-        this.getOnlineUsers();
     },
 };
 </script>
@@ -185,36 +152,6 @@ export default {
 .conv-block:hover,
 .conv-block.active {
     background-color: #e6ebf5;
-}
-
-.img-container {
-    height: 40px;
-    width: 40px;
-    overflow: hidden;
-    border-radius: 50%;
-}
-
-.img-container img {
-    height: 100%;
-    width: 100%;
-    object-fit: cover;
-}
-
-.wrapper {
-    position: relative;
-    width: fit-content;
-}
-
-.online-icon {
-    height: 12px;
-    width: 12px;
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    border: 2px solid #fff;
-    border-radius: 50%;
-    transform: translateX(20%);
-    background-color: #60d960;
 }
 
 .chat-user-message {

@@ -4,10 +4,10 @@
 
         <div class="sidebar p-4">
             <profile v-if="currentPage=='profile'" />
-            <chats v-if="currentPage=='chats'" :messagesHistory="messagesHistory" @messageRecieved="getMessagesHistory"/>
+            <chats v-if="currentPage=='chats'" :messagesHistory="messagesHistory" @messageRecieved="getMessagesHistory" :onlineUsers="onlineUsers"/>
         </div>
 
-        <chat class="flex-grow-1" :chat="chat" @messageSent='getMessagesHistory' @seeMessages="resetNotificationsCounter"/>
+        <chat class="flex-grow-1" :chat="chat" @messageSent='getMessagesHistory' @seeMessages="resetNotificationsCounter" :onlineUsers="onlineUsers"/>
     </div>
 </template>
 
@@ -27,6 +27,7 @@ export default {
                 id: 1
             },
             messagesHistory: [],
+            onlineUsers: [],
         };
     },
 
@@ -63,6 +64,27 @@ export default {
     },
 
     methods: {
+        getOnlineUsers() {
+            axiosClient
+                .get("/logged-in-users")
+                .then((result) => {
+                    this.onlineUsers = result.data;
+                })
+                .catch((err) => {
+                    console.log(err);
+                });
+
+            Echo.private("notifications").listen("UserSessionChange", (e) => {
+                if (e.type === "connected") {
+                    this.onlineUsers.push(e.user);
+                } else {
+                    this.onlineUsers = this.onlineUsers.filter(
+                        (user) => user.id !== e.user.id
+                    );
+                }
+            });
+        },
+
         async getMessagesHistory() {
             try {
                 const result = await axiosClient.get("/chat/messages-history");
@@ -123,13 +145,12 @@ export default {
                     return {...obj}
                 }
             });
-
-            console.log(this.messagesHistory);
         }
     },
 
     mounted() {
         this.getMessagesHistory();
+        this.getOnlineUsers();
     }
 };
 </script>

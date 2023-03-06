@@ -69,14 +69,14 @@ class ChatController extends Controller
         if ($type == "group") {
             return Message::join('message_recipients AS recipients', 'messages.id', '=', 'recipients.message_id')
                 ->join('users', 'users.id', '=', 'messages.sender_id')
-                ->select('messages.*', 'users.name AS user_name')
+                ->select('messages.*', 'users.name AS user_name', 'users.picture as user_pic')
                 ->where('recipients.recipient_group_id', $recipient_id)
                 ->groupBy('messages.id')
                 ->latest()->paginate(10);
         } else {
             return Message::join('message_recipients AS recipients', 'messages.id', '=', 'recipients.message_id')
                 ->join('users', 'users.id', '=', 'messages.sender_id')
-                ->select('messages.*', 'users.name AS user_name', 'recipients.recipient_id AS recipient_id')
+                ->select('messages.*', 'users.name AS user_name', 'users.picture as user_pic', 'recipients.recipient_id AS recipient_id')
                 ->Where('recipients.recipient_group_id', null)
                 ->where(
                     function ($query) use ($recipient_id) {

@@ -120,12 +120,18 @@ a, a:hover {
     font-weight: 600
 }
 
+[data-title] {
+    position: relative;
+    cursor: pointer;
+}
+
 [data-title]:hover:before {
     opacity: 1;
     transition: all 0.1s ease 0.5s;
     visibility: visible;
 }
 [data-title]:before {
+    width: max-content;
     line-height: 100%;
     content: attr(data-title) !important;
     color: #f8f9fa;
@@ -136,13 +142,18 @@ a, a:hover {
     transform: translate(105%, -50%);
     opacity: 0;
     z-index: 99999;
-    background-color: #878a92ad;
+    background-color: #7269efab;
     padding: 5px 5px;
     border-radius: 5%;
     visibility: hidden;
 }
-[data-title] {
-    position: relative;
+
+[data-title-position="bottom"][data-title]:before {
+    bottom: -50%;
+    left: 50%;
+    top: unset;
+    right: unset;
+    transform: translate(-50%, 20%);
 }
 
 .search .v-input__details {

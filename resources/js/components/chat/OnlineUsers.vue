@@ -10,17 +10,9 @@
             @mousedown="onMouseDown"
             @mouseup="onMouseUp"
         >
-            <div v-for="n in 10" :key="n" class="user-block">
-                <div class="wrapper">
-                    <div class="img-container">
-                        <img
-                            src="https://cdn-icons-png.flaticon.com/512/147/147144.png"
-                            alt=""
-                        />
-                    </div>
-                    <div class="online-icon"></div>
-                </div>
-                <h5 class="font-size-13 text-truncate mt-auto">youcef</h5>
+            <div v-for="user in onlineUsers" :key="user.id" class="user-block">
+                <thumbnail class="thumbnail" :onlineIcon="true" :image="user.picture"/>
+                <h5 class="font-size-13 text-truncate mt-auto">{{user.name}}</h5>
             </div>
         </section>
     </div>
@@ -28,7 +20,9 @@
 
 <script>
 import axiosClient from "../../axios";
+import Thumbnail from './Thumbnail.vue';
 export default {
+  components: { Thumbnail },
     props: {
         onlineUsers: Array,
     },
@@ -119,35 +113,9 @@ export default {
     position: relative;
 }
 
-.img-container {
-    height: 40px;
-    width: 40px;
-    overflow: hidden;
-    border-radius: 50%;
-}
-
-.img-container img {
-    height: 100%;
-    width: 100%;
-    object-fit: cover;
-}
-
-.wrapper {
-    position: absolute;
+.thumbnail {
+    position: absolute !important;
     top: 0;
     transform: translateY(-50%);
 }
-
-.online-icon {
-    height: 12px;
-    width: 12px;
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    border: 2px solid #fff;
-    border-radius: 50%;
-    transform: translateX(20%);
-    background-color: #60d960;
-}
-
 </style>

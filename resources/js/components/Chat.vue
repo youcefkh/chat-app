@@ -330,6 +330,8 @@ export default {
     watch: {
         chat: {
             handler(params) {
+                if(this.convType == params.type && this.convId == params.id) return; //when query params change no need to modify chat content
+
                 this.convType = params.type;
                 this.convId = params.id;
                 this.messages = [];

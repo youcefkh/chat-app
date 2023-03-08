@@ -89,7 +89,11 @@ router.beforeEach(async (to, from, next) => {
 
 
     //random request to the server to keep on track the user's last activity whenever he opens a new page
-    axiosClient.get("/track-activity")
+    try {
+        axiosClient.get("/track-activity")
+    } catch (error) {
+        console.log(error);
+    }
 });
 
 export default router;

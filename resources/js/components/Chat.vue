@@ -79,8 +79,9 @@
             </header>
             <!-- chat box -->
             <div ref="chatArea" class="chat-area rounded">
+                <chat-skeleton v-if="isdisplaySkeleton"/>
                 <!-- messages -->
-                <div>
+                <div v-else>
                     <div
                         v-for="(message, index) in messages"
                         :key="index"
@@ -283,6 +284,7 @@ import moment from "moment";
 import GroupOptions from "./chat/GroupOptions.vue";
 import dateFormatter from "../mixins/dateFormatter";
 import Thumbnail from "./chat/Thumbnail.vue";
+import ChatSkeleton from './skeletons/ChatSkeleton.vue';
 
 export default {
     mixins: [dateFormatter],
@@ -297,7 +299,9 @@ export default {
         VideoPlayer,
         GroupOptions,
         Thumbnail,
+        ChatSkeleton,
     },
+
     data() {
         return {
             convType: null,
@@ -317,7 +321,8 @@ export default {
             cursorPosition: 0,
             pagination: 0,
             isLoadingMessages: false,
-            isDisplaySeeMoreBtn: true,
+            isDisplaySeeMoreBtn: false,
+            isdisplaySkeleton: false,
         };
     },
 
@@ -531,6 +536,8 @@ export default {
 
         getMessages(scrollToBottom = true) {
             this.pagination++;
+            this.isdisplaySkeleton = this.pagination == 1 ? true : false;
+            this.isDisplaySeeMoreBtn = this.pagination == 1 ? false : true;
             this.isLoadingMessages = true;
 
             const type = this.convType;
@@ -555,6 +562,8 @@ export default {
 
                         if (this.messages.length == result.data.total) {
                             this.isDisplaySeeMoreBtn = false;
+                        }else {
+                            this.isDisplaySeeMoreBtn = true;
                         }
                     }
                 })
@@ -564,6 +573,7 @@ export default {
                 .then((result) => {
                     scrollToBottom ? this.scrollToBottom() : null;
                     this.isLoadingMessages = false;
+                    this.isdisplaySkeleton = false;
                 });
         },
 
@@ -704,7 +714,7 @@ main > header {
     height: 100vh;
     padding: 1em;
     padding-bottom: 100px;
-    overflow: auto;
+    overflow-x: hidden;
 }
 /* chat area scrollbar */
 .chat-area::-webkit-scrollbar-track {

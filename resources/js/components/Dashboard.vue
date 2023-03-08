@@ -159,6 +159,7 @@ export default {
 .sidebar {
     height: 100vh;
     width: 380px;
+    min-width: 380px;
     background-color: #f5f7fb;
     overflow: hidden;
 }

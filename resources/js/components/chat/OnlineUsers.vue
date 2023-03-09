@@ -1,6 +1,8 @@
 <template>
     <div>
+        <online-user-skeleton v-if="!onlineUsers.length"/>
         <section
+            v-else
             id="users-wrapper"
             ref="el"
             :style="{
@@ -20,9 +22,10 @@
 
 <script>
 import axiosClient from "../../axios";
+import OnlineUserSkeleton from '../skeletons/OnlineUserSkeleton.vue';
 import Thumbnail from './Thumbnail.vue';
 export default {
-  components: { Thumbnail },
+  components: { Thumbnail, OnlineUserSkeleton },
     props: {
         onlineUsers: Array,
     },

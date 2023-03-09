@@ -15,7 +15,8 @@
         <h5 class="font-size-15 mb-2 mt-10">Recent</h5>
 
         <div class="messages-history">
-            <div class="chats">
+            <notification-skeleton v-if="!messagesHistory.length" />
+            <div class="chats" v-else>
                 <div
                     v-for="conv in messagesHistory"
                     :key="conv.id"
@@ -72,6 +73,7 @@ import store from "../../store";
 import OnlineUsers from "./OnlineUsers.vue";
 import dateFormatter from "../../mixins/dateFormatter";
 import Thumbnail from './Thumbnail.vue';
+import NotificationSkeleton from '../skeletons/NotificationSkeleton.vue';
 
 export default {
     mixins: [dateFormatter],
@@ -89,7 +91,8 @@ export default {
 
     components: {
         OnlineUsers,
-        Thumbnail
+        Thumbnail,
+        NotificationSkeleton
     },
 
     computed: {

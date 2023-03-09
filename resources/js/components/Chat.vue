@@ -192,9 +192,12 @@
 
                         <!-- message as info -->
                         <div class="message-info" v-else>
-                            <span>{{
-                                moment(message.created_at).fromNow()
-                            }}</span>
+                            <div>
+                                <v-icon icon="mdi-clock-outline" class="mr-1" />
+                                <span>
+                                    {{ formatDate(message.created_at) }}
+                                </span>
+                            </div>
                             <span v-html="message.body"></span>
                         </div>
                     </div>

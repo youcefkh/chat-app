@@ -8,6 +8,8 @@
             class="search m-auto my-8"
             placeholder="Search conversations"
             prepend-inner-icon="mdi-magnify"
+            v-model="searchValue"
+            @keyup="search"
         ></v-text-field>
 
         <online-users :onlineUsers="onlineUsers" />
@@ -15,7 +17,8 @@
         <h5 class="font-size-15 mb-2 mt-10">Recent</h5>
 
         <div class="messages-history">
-            <notification-skeleton v-if="!messagesHistory.length" />
+            <notification-skeleton v-if="isLoading" />
+            <h5 v-else-if="!messagesHistory.length" class="font-size-16 mt-5 text-muted">No results found!</h5>
             <div class="chats" v-else>
                 <div
                     v-for="conv in messagesHistory"
@@ -79,13 +82,13 @@ export default {
     mixins: [dateFormatter],
 
     props: {
-        messagesHistory: Array,
+        conversations: Object,
         onlineUsers: Array
     },
 
     data() {
         return {
-            //
+            searchValue: null
         };
     },
 
@@ -103,6 +106,14 @@ export default {
         conversation() {
             return this.$route.params;
         },
+
+        messagesHistory() {
+            return this.conversations.messagesHistory
+        },
+
+        isLoading() {
+            return this.conversations.isLoading
+        }
     },
 
     methods: {
@@ -119,7 +130,11 @@ export default {
             Echo.private(`messages.${this.user.id}`).listen("MessageRecieved", (e) => {
                 this.$emit('messageRecieved');
             });
-        }
+        },
+
+        search(e) {
+            this.$emit('search', this.searchValue.toLowerCase())
+        },
     },
 
     mounted() {

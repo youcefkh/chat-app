@@ -3,11 +3,23 @@
         <navbar />
 
         <div class="sidebar p-4">
-            <profile v-if="currentPage=='profile'" />
-            <chats v-if="currentPage=='chats'" :messagesHistory="messagesHistory" @messageRecieved="getMessagesHistory" :onlineUsers="onlineUsers"/>
+            <profile v-if="currentPage == 'profile'" />
+            <chats
+                v-if="currentPage == 'chats'"
+                :conversations="{messagesHistory, isLoading}"
+                :onlineUsers="onlineUsers"
+                @messageRecieved="getMessagesHistory"
+                @search="filterMessagesHistory"
+            />
         </div>
 
-        <chat class="flex-grow-1" :chat="chat" @messageSent='getMessagesHistory' @seeMessages="resetNotificationsCounter" :onlineUsers="onlineUsers"/>
+        <chat
+            class="flex-grow-1"
+            :chat="chat"
+            @messageSent="getMessagesHistory"
+            @seeMessages="resetNotificationsCounter"
+            :onlineUsers="onlineUsers"
+        />
     </div>
 </template>
 
@@ -15,19 +27,21 @@
 import Navbar from "./Navbar.vue";
 import Profile from "./chat/Profile.vue";
 import Chats from "./chat/Chats.vue";
-import Chat from '../components/Chat.vue';
-import axiosClient from '../axios';
-import store from '../store';
+import Chat from "../components/Chat.vue";
+import axiosClient from "../axios";
+import store from "../store";
 export default {
     data() {
         return {
             currentPage: "profile",
             chat: {
                 type: "group",
-                id: 1
+                id: 1,
             },
             messagesHistory: [],
+            messagesHistoryBis: [],
             onlineUsers: [],
+            isLoading: false
         };
     },
 
@@ -35,7 +49,7 @@ export default {
         Navbar,
         Profile,
         Chats,
-        Chat
+        Chat,
     },
 
     computed: {
@@ -47,7 +61,7 @@ export default {
     watch: {
         "$route.query.page": {
             handler(value) {
-                if(value) {
+                if (value) {
                     this.currentPage = value;
                 }
             },
@@ -56,7 +70,7 @@ export default {
         },
         "$route.params": {
             handler(params) {
-                this.chat = {type: params.type, id: params.id}
+                this.chat = { type: params.type, id: params.id };
             },
             deep: true,
             immediate: true,
@@ -85,7 +99,8 @@ export default {
             });
         },
 
-        async getMessagesHistory() {
+        async getMessagesHistory(loading = false) {
+            this.isLoading = loading
             try {
                 const result = await axiosClient.get("/chat/messages-history");
                 const data = Object.values(result.data);
@@ -129,29 +144,40 @@ export default {
                         };
                     }
                 });
+                this.messagesHistoryBis = this.messagesHistory
             } catch (error) {
                 console.log(error);
             }
+            this.isLoading = false
         },
 
         resetNotificationsCounter(conversation) {
-            this.messagesHistory = this.messagesHistory.map(obj => {
-                if(obj.conv_type == conversation.type && obj.conv_id == conversation.id) {
+            this.messagesHistory = this.messagesHistory.map((obj) => {
+                if (
+                    obj.conv_type == conversation.type &&
+                    obj.conv_id == conversation.id
+                ) {
                     return {
                         ...obj,
-                        notification_count: 0
-                    }
-                }else {
-                    return {...obj}
+                        notification_count: 0,
+                    };
+                } else {
+                    return { ...obj };
                 }
+            });
+        },
+
+        filterMessagesHistory(value) {
+            this.messagesHistory = this.messagesHistoryBis.filter(({name}) => {
+                return name.toLowerCase().indexOf(value) > -1
             });
         }
     },
 
     mounted() {
-        this.getMessagesHistory();
+        this.getMessagesHistory(true);
         this.getOnlineUsers();
-    }
+    },
 };
 </script>
 

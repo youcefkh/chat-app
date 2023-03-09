@@ -535,6 +535,7 @@ export default {
         },
 
         getMessages(scrollToBottom = true) {
+            this.isdisplaySkeleton = true;
             this.pagination++;
             this.isdisplaySkeleton = this.pagination == 1 ? true : false;
             this.isDisplaySeeMoreBtn = this.pagination == 1 ? false : true;
@@ -940,6 +941,10 @@ main > header {
     padding: 10px;
     background: #fff;
 }
+
+.v-input__control {
+    background: #f5f7fb6e !important;
+ }
 
 @keyframes wave {
     0% {

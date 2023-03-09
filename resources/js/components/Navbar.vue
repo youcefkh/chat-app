@@ -101,6 +101,7 @@ export default {
 nav {
     height: 100vh;
     width: 75px;
+    min-width: 75px;
     background-color: #fff;
     box-shadow: 0 2px 4px rgb(15 34 58 / 12%);
     display: flex;

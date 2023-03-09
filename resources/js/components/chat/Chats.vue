@@ -126,17 +126,6 @@ export default {
 </script>
 
 <style scoped>
-.search {
-    background-color: #e6ebf5;
-    color: #7a7f9a;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.search .v-input__details {
-    display: none;
-}
-
 .messages-history {
     max-height: calc(100vh - 330px);
     overflow: auto;

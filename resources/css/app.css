@@ -159,3 +159,10 @@ a, a:hover {
 .search .v-input__details {
     display: none;
 }
+
+.v-input__control {
+    background-color: #e6ebf5;
+    color: #000;
+    border-radius: 10px;
+    overflow: hidden;
+}

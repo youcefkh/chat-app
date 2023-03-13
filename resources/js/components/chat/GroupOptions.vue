@@ -1,136 +1,137 @@
 <template>
-    <div class="options w-25 pl-10">
-        <p class="h4">
-            <v-icon icon="mdi-account-group-outline" />
-            {{ group ? group.name : null }}
-        </p>
-
+    <div class="options">
         <!-- add new member -->
-        <v-dialog v-model="dialog" persistent>
-            <template v-slot:activator="{ props }">
-                <v-btn
-                    prepend-icon="mdi-account-plus-outline"
-                    variant="outlined"
-                    class="mb-3"
-                    v-bind="props"
-                >
-                    Add new member
-                </v-btn>
-            </template>
-            <v-card>
-                <v-progress-linear
-                    v-if="isLoadingDialog"
-                    color="primary"
-                    indeterminate
-                ></v-progress-linear>
-                <v-card-title class="d-flex">
-                    <v-icon icon="mdi-account-plus-outline" />
-                    <span class="ml-1 text-h5">Add new member</span>
-                </v-card-title>
-                <v-card-text>
-                    <v-container>
-                        <v-row>
-                            <v-col cols="12">
-                                <v-text-field
-                                    label="Search"
-                                    required
-                                    @keyup="searchUser"
-                                    v-model="memberSearchField"
-                                ></v-text-field>
-                            </v-col>
-                        </v-row>
-                        <div class="selected-members">
-                            <v-list class="overflow-hidden d-flex">
-                                <v-chip
-                                    class="ma-2"
-                                    closable
-                                    v-for="(user, index) in selectedNewMembers"
-                                    :key="index"
-                                    @click="removeSelectedMember(user.id)"
-                                >
-                                    <v-list-item
-                                        class="p-0"
-                                        :title="user.name"
-                                        prepend-avatar="https://cdn-icons-png.flaticon.com/512/147/147144.png"
-                                    ></v-list-item>
-                                </v-chip>
-                            </v-list>
-                        </div>
-
-                        <v-list class="overflow-hidden suggested-members">
-                            <p class="text-h6">Suggestions</p>
-                            <div v-if="!memberSearchField" class="info">
-                                <span>Start typing to get suggestions</span>
-                            </div>
-                            <div v-else-if="isLoadingSearch" class="info">
-                                <span>Loading ...</span>
-                            </div>
-                            <div
-                                v-else-if="
-                                    memberSearchField &&
-                                    suggestedUsers.length == 0
-                                "
-                                class="info"
-                            >
-                                <span>No results found</span>
-                            </div>
-                            <v-row
-                                v-else
-                                v-for="(user, index) in suggestedUsers"
-                                :key="index"
-                                class="m-0 justify-space-between"
-                            >
-                                <v-col cols="8" class="p-0">
-                                    <label :for="user.id" class="w-100">
-                                        <v-list-item
-                                            :title="user.name"
-                                            :subtitle="user.email"
-                                            prepend-avatar="https://cdn-icons-png.flaticon.com/512/147/147144.png"
-                                        ></v-list-item>
-                                    </label>
-                                </v-col>
-                                <v-col cols="4" class="p-0">
-                                    <v-checkbox
-                                        v-model="selectedNewMembers"
-                                        :value="user"
-                                        :id="user.id + ''"
-                                    ></v-checkbox>
+        <div class="bg-white mb-3">
+            <v-dialog v-model="dialog" persistent>
+                <template v-slot:activator="{ props }">
+                    <v-btn
+                        prepend-icon="mdi-account-plus-outline"
+                        variant="outlined"
+                        class="w-100"
+                        v-bind="props"
+                    >
+                        Add new member
+                    </v-btn>
+                </template>
+                <v-card>
+                    <v-progress-linear
+                        v-if="isLoadingDialog"
+                        color="primary"
+                        indeterminate
+                    ></v-progress-linear>
+                    <v-card-title class="d-flex">
+                        <v-icon icon="mdi-account-plus-outline" />
+                        <span class="ml-1 text-h5">Add new member</span>
+                    </v-card-title>
+                    <v-card-text>
+                        <v-container>
+                            <v-row>
+                                <v-col cols="12">
+                                    <v-text-field
+                                        label="Search"
+                                        required
+                                        @keyup="searchUser"
+                                        v-model="memberSearchField"
+                                    ></v-text-field>
                                 </v-col>
                             </v-row>
-                        </v-list>
-                    </v-container>
-                </v-card-text>
+                            <div class="selected-members">
+                                <v-list class="overflow-hidden d-flex">
+                                    <v-chip
+                                        class="ma-2"
+                                        closable
+                                        v-for="(
+                                            user, index
+                                        ) in selectedNewMembers"
+                                        :key="index"
+                                        @click="removeSelectedMember(user.id)"
+                                    >
+                                        <v-list-item
+                                            class="p-0"
+                                            :title="user.name"
+                                            prepend-avatar="https://cdn-icons-png.flaticon.com/512/147/147144.png"
+                                        ></v-list-item>
+                                    </v-chip>
+                                </v-list>
+                            </div>
 
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn
-                        color="primary"
-                        variant="text"
-                        @click="discardDialog"
-                    >
-                        Discard
-                    </v-btn>
-                    <v-btn
-                        color="primary"
-                        variant="text"
-                        @click="addMember"
-                        :disabled="
-                            isLoadingDialog || selectedNewMembers.length == 0
-                        "
-                    >
-                        Add
-                    </v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
+                            <v-list class="overflow-hidden suggested-members">
+                                <p class="text-h6">Suggestions</p>
+                                <div v-if="!memberSearchField" class="info">
+                                    <span>Start typing to get suggestions</span>
+                                </div>
+                                <div v-else-if="isLoadingSearch" class="info">
+                                    <span>Loading ...</span>
+                                </div>
+                                <div
+                                    v-else-if="
+                                        memberSearchField &&
+                                        suggestedUsers.length == 0
+                                    "
+                                    class="info"
+                                >
+                                    <span>No results found</span>
+                                </div>
+                                <v-row
+                                    v-else
+                                    v-for="(user, index) in suggestedUsers"
+                                    :key="index"
+                                    class="m-0 justify-space-between"
+                                >
+                                    <v-col cols="8" class="p-0">
+                                        <label :for="user.id" class="w-100">
+                                            <v-list-item
+                                                :title="user.name"
+                                                :subtitle="user.email"
+                                                prepend-avatar="https://cdn-icons-png.flaticon.com/512/147/147144.png"
+                                            ></v-list-item>
+                                        </label>
+                                    </v-col>
+                                    <v-col cols="4" class="p-0">
+                                        <v-checkbox
+                                            v-model="selectedNewMembers"
+                                            :value="user"
+                                            :id="user.id + ''"
+                                        ></v-checkbox>
+                                    </v-col>
+                                </v-row>
+                            </v-list>
+                        </v-container>
+                    </v-card-text>
+
+                    <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn
+                            color="primary"
+                            variant="text"
+                            @click="discardDialog"
+                        >
+                            Discard
+                        </v-btn>
+                        <v-btn
+                            color="primary"
+                            variant="text"
+                            @click="addMember"
+                            :disabled="
+                                isLoadingDialog ||
+                                selectedNewMembers.length == 0
+                            "
+                        >
+                            Add
+                        </v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
+        </div>
 
         <!-- show group members -->
-        <div class="mb-3">
+        <div class="mb-3 bg-white">
             <v-btn
                 prepend-icon="mdi-account-group"
                 :append-icon="isExpanded ? 'mdi-menu-up' : 'mdi-menu-down'"
                 variant="outlined"
                 @click="expand"
+                class="w-100"
             >
                 Group members
             </v-btn>
@@ -156,14 +157,16 @@
         </div>
 
         <!-- leave group -->
-        <v-btn
-            prepend-icon="mdi-logout-variant"
-            variant="outlined"
-            class="mb-3"
-            @click="leaveGroup"
-        >
-            Leave group
-        </v-btn>
+        <div class="mb-3 bg-white">
+            <v-btn
+                prepend-icon="mdi-logout-variant"
+                variant="outlined"
+                class="w-100"
+                @click="leaveGroup"
+            >
+                Leave group
+            </v-btn>
+        </div>
     </div>
 </template>
 
@@ -190,7 +193,7 @@ export default {
         };
     },
 
-     computed: {
+    computed: {
         user() {
             return store.state.user.data;
         },
@@ -205,7 +208,7 @@ export default {
             };
             try {
                 await axiosClient.delete(`/group-members/${this.userId}`);
-                this.$emit('sendInfoMessage', message)
+                this.$emit("sendInfoMessage", message);
                 //await this.sendInfoMessage(message);
 
                 this.$router.push({ name: "dashboard" });
@@ -248,7 +251,7 @@ export default {
                 type: "info",
                 created_at: this.moment().toISOString(),
             };
-            this.$emit('sendInfoMessage', message)
+            this.$emit("sendInfoMessage", message);
             //await this.sendInfoMessage(message);
             this.isLoadingDialog = false;
             this.discardDialog();
@@ -294,11 +297,14 @@ export default {
     max-height: 0px;
     overflow: hidden;
     transition: max-height 0.5s ease-in-out 0s;
+    border: none;
 }
 
 #expantionPanel.active {
     max-height: 500px;
     overflow-y: auto;
+    border: 1px solid;
+    border-radius: 5px;
 }
 
 .suggested-members label {

@@ -1,85 +1,45 @@
 <template>
-    <div>
+    <div class="d-flex">
         <!-- waving notification message -->
         <div id="wave-message">
             <span v-html="waveMessage"></span>
             <v-icon class="wave ml-2" icon="mdi-hand-wave" />
         </div>
 
-        <!-- online users 
-            <div class="users-list w-25">
-                <div v-if="!friend">
-                    <p class="h4">
-                        <v-icon icon="mdi-account-badge" />
-                        Online Users
-                    </p>
-                    <v-list class="overflow-hidden" lines="one">
-                        <router-link
-                            v-for="(user, index) in onlineUsers"
-                            :key="index"
-                            :to="{
-                                name: 'chat',
-                                params: { type: 'private', id: user.id },
-                            }"
-                            class="d-flex mb-2"
-                        >
-                            <v-list-item
-                                :title="user.name"
-                                :subtitle="user.email"
-                                prepend-avatar="https://cdn-icons-png.flaticon.com/512/147/147144.png"
-                            ></v-list-item>
-                            <v-icon
-                                class="hand"
-                                icon="mdi-hand-wave"
-                                :title="'wave at ' + user.name"
-                                @click="wave($event, user.id)"
-                            />
-                        </router-link>
-                    </v-list>
-                </div>
-                <div v-else>
-                    <p class="h6">This is a private conversation with:</p>
-                    <v-list class="d-flex" lines="one">
-                        <v-list-item
-                            :title="friend.name"
-                            :subtitle="friend.email"
-                            prepend-avatar="https://cdn-icons-png.flaticon.com/512/147/147144.png"
-                        >
-                        </v-list-item>
+        <!-- wave
                         <v-icon
                             class="hand"
                             icon="mdi-hand-wave"
                             :title="'wave at ' + friend.name"
                             @click="wave($event, friend.id)"
                         />
-                    </v-list>
-                </div>
-            </div>
             -->
         <main id="app" class="position-relative">
-            <header class="border-bottom p-4">
+            <header class="border-bottom p-4 d-flex align-items-center justify-content-between">
                 <div
-                    v-if="convType == 'private' && friend || convType == 'group' && group"
+                    v-if="conversation"
                     class="d-flex align-items-center gap-3"
                 >
                     <thumbnail
-                        :image="
-                            convType == 'private'
-                                ? friend.picture
-                                : group.picture"
+                        :image="conversation.picture"
                         :onlineUsers="convType == 'private' ? onlineUsers : null"
-                        :user_id="convType == 'private' ? friend.id : null"
+                        :user_id="convType == 'private' && friend ? friend.id : null"
                         :onlineIcon="convType == 'private' ? true : false"
-                        style="scale: 1.2;"
+                        style="scale: 1.2"
                     />
                     <h5 class="mb-0">
-                        {{ convType == "private" ? friend.name : group.name }}
+                        {{ conversation ? conversation.name : null }}
                     </h5>
                 </div>
+
+                <div>
+                    <v-icon class="text-muted chat-options" icon="mdi-dots-horizontal" @click="isDisplayDetails=true"/>
+                </div>
             </header>
+
             <!-- chat box -->
             <div ref="chatArea" class="chat-area rounded">
-                <chat-skeleton v-if="isdisplaySkeleton"/>
+                <chat-skeleton v-if="isdisplaySkeleton" />
                 <!-- messages -->
                 <div v-else>
                     <div
@@ -204,7 +164,11 @@
                 </div>
 
                 <!-- see more button -->
-                <div ref="seeMoreBtn" class="see-more my-auto" v-if="isDisplaySeeMoreBtn">
+                <div
+                    ref="seeMoreBtn"
+                    class="see-more my-auto"
+                    v-if="isDisplaySeeMoreBtn"
+                >
                     <div>
                         <v-btn
                             class="mb-0"
@@ -257,13 +221,8 @@
             </div>
         </main>
 
-        <!-- group options -->
-        <group-options
-            class="d-none"
-            v-if="convType == 'group'"
-            @sendInfoMessage="sendInfoMessage"
-            :group="group"
-        />
+        <!-- chat details -->
+            <chat-details :class="{'active': isDisplayDetails}" ref="chatDetails" :conversation="conversation" :isOnline="isOnline" :convType="convType" @hideDetails="isDisplayDetails=false"/>
 
         <!-- display image in full size -->
         <div
@@ -287,7 +246,8 @@ import moment from "moment";
 import GroupOptions from "./chat/GroupOptions.vue";
 import dateFormatter from "../mixins/dateFormatter";
 import Thumbnail from "./chat/Thumbnail.vue";
-import ChatSkeleton from './skeletons/ChatSkeleton.vue';
+import ChatSkeleton from "./skeletons/ChatSkeleton.vue";
+import ChatDetails from "./chat/ChatDetails.vue";
 
 export default {
     mixins: [dateFormatter],
@@ -303,6 +263,7 @@ export default {
         GroupOptions,
         Thumbnail,
         ChatSkeleton,
+        ChatDetails,
     },
 
     data() {
@@ -326,6 +287,7 @@ export default {
             isLoadingMessages: false,
             isDisplaySeeMoreBtn: false,
             isdisplaySkeleton: false,
+            isDisplayDetails: false,
         };
     },
 
@@ -333,12 +295,31 @@ export default {
         user() {
             return store.state.user.data;
         },
+
+        conversation() {
+            if(this.convType == 'private' && this.friend) {
+                return this.friend;
+            } else if(this.convType == 'group' && this.group) {
+                return this.group;
+            }else {
+                return [];
+            }
+        },
+
+        isOnline() {
+            if(this.convType == 'group') return true;
+
+            return this.onlineUsers.some((user) => {
+                return user.id === this.friend.id;
+            });
+        },
     },
 
     watch: {
         chat: {
             handler(params) {
-                if(this.convType == params.type && this.convId == params.id) return; //when query params change no need to modify chat content
+                if (this.convType == params.type && this.convId == params.id)
+                    return; //when query params change no need to modify chat content
 
                 this.convType = params.type;
                 this.convId = params.id;
@@ -566,7 +547,7 @@ export default {
 
                         if (this.messages.length == result.data.total) {
                             this.isDisplaySeeMoreBtn = false;
-                        }else {
+                        } else {
                             this.isDisplaySeeMoreBtn = true;
                         }
                     }
@@ -704,6 +685,7 @@ main#app {
     display: flex;
     flex-direction: column;
     box-shadow: 0 2px 4px rgb(15 34 58 / 12%);
+    flex-grow: 1;
 }
 
 main > header {
@@ -947,7 +929,11 @@ main > header {
 
 .v-input__control {
     background: #f5f7fb6e !important;
- }
+}
+
+.chat-options {
+    cursor: pointer;
+}
 
 @keyframes wave {
     0% {

@@ -1,32 +1,44 @@
 <template>
-    <div class="my-profile">
+    <div class="chat-sidebar p-4">
         <header>
-            <h4 class="title">My Profile</h4>
+            <div class="text-right text-muted">
+                <v-icon icon="mdi-close-box" @click="$emit('hideDetails')" />
+            </div>
         </header>
 
         <div class="d-flex flex-column align-center my-5">
             <div class="img-container mb-5">
                 <img
-                    :src="user.picture"
+                    :src="conversation.picture"
                     alt=""
                 />
             </div>
-            <h5 class="name text-truncate font-size-16 mb-0">
-                {{ user.name }}
+            <h5 class="name text-truncate font-size-16 mb-2">
+                {{ conversation.name }}
             </h5>
             <div class="status">
-                <v-icon
-                    class="text-green-accent-3 mr-2 text-subtitle-2"
-                    icon="mdi-record-circle"
-                />
-                <span class="text-muted">Active</span>
+                <div v-if="isOnline" class="d-flex align-items-center">
+                    <v-icon
+                        class="text-green-accent-3 mr-2 text-subtitle-2"
+                        icon="mdi-record-circle"
+                    />
+                    <span class="text-muted">Active</span>
+                </div>
+
+                <div v-else class="d-flex align-items-center">
+                    <v-icon
+                        class="text-muted"
+                        icon="mdi-account-off-outline"
+                    />
+                    <span class="text-muted">Absent</span>
+                </div>
             </div>
         </div>
 
         <hr class="my-10 text-gray-400" />
 
         <div class="infos px-3">
-            <div class="about bg-white p-6 rounded">
+            <div class="about bg-white p-6 mb-3 rounded">
                 <header
                     class="mb-8 d-flex justify-content-between align-items-center"
                 >
@@ -34,26 +46,15 @@
                         <v-icon class="mr-1" icon="mdi-account-details" />
                         <span>About</span>
                     </h5>
-
-                    <div data-title="Edit">
-                        <v-btn
-                            variant="outlined"
-                            size="x-small"
-                            icon
-                            color="info"
-                        >
-                            <v-icon>mdi-pencil</v-icon>
-                        </v-btn>
-                    </div>
                 </header>
 
                 <div class="mb-7">
                     <p class="text-muted mb-1">Name</p>
-                    <h5 class="font-size-14">{{ user.name }}</h5>
+                    <h5 class="font-size-14">{{ conversation.name }}</h5>
                 </div>
                 <div class="mb-7">
                     <p class="text-muted mb-1">Email</p>
-                    <h5 class="font-size-14">{{ user.email }}</h5>
+                    <h5 class="font-size-14">{{ conversation.email }}</h5>
                 </div>
                 <div class="mb-7">
                     <p class="text-muted mb-1">Time</p>
@@ -64,6 +65,10 @@
                     <h5 class="font-size-14">{{ location }}</h5>
                 </div>
             </div>
+
+            <div v-if="convType == 'group'">
+                <group-options :group="conversation"/>
+            </div>
         </div>
     </div>
 </template>
@@ -72,18 +77,20 @@
 import store from "../../store";
 import moment from "moment";
 import axios from "axios";
+import GroupOptions from './GroupOptions.vue';
 export default {
+  components: { GroupOptions },
+    props: [
+        'conversation',
+        'isOnline',
+        'convType'
+    ],
+
     data() {
         return {
             moment: moment,
             location: null,
         };
-    },
-
-    computed: {
-        user() {
-            return store.state.user.data;
-        },
     },
 
     methods: {
@@ -99,6 +106,26 @@ export default {
 </script>
 
 <style scoped>
+.chat-sidebar {
+    height: 100vh;
+    width: 380px;
+    min-width: 380px;
+    background-color: #f5f7fb;
+    overflow: auto;
+    border-left: 4px solid #f0eff5;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transform: translateX(100%);
+    transition: all 1s cubic-bezier(0, 0.68, 0.04, 1.11);
+}
+
+.chat-sidebar.active {
+    position: relative;
+    right: 0;
+    transform: translateX(0px);
+}
+
 .img-container {
     height: 100px;
     width: 100px;

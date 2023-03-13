@@ -10,7 +10,7 @@
             <div class="chat-skeleton-content">
                 <div
                     class="chat-skeleton-line"
-                    :style="'height:' + randomInt(50, 150) + 'px'"
+                    :style="'height:' + randomInt(50, 100) + 'px'"
                 ></div>
             </div>
         </div>

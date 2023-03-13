@@ -72,7 +72,7 @@ class ChatController extends Controller
                 ->select('messages.*', 'users.name AS user_name', 'users.picture as user_pic')
                 ->where('recipients.recipient_group_id', $recipient_id)
                 ->groupBy('messages.id')
-                ->latest()->paginate(10);
+                ->latest()->paginate(15);
         } else {
             return Message::join('message_recipients AS recipients', 'messages.id', '=', 'recipients.message_id')
                 ->join('users', 'users.id', '=', 'messages.sender_id')
@@ -91,7 +91,7 @@ class ChatController extends Controller
                             ]);
                     }
                 )
-                ->latest()->paginate(10);
+                ->latest()->paginate(15);
         }
     }
 

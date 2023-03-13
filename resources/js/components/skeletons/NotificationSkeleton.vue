@@ -1,6 +1,6 @@
 <template>
     <div class="chat-skeleton">
-        <div class="chat-skeleton-notification py-4 px-2" v-for="n in 5" :key="n">
+        <div class="chat-skeleton-notification py-4 px-2" v-for="n in 4" :key="n">
             <div class="chat-skeleton-avatar"></div>
             <div class="chat-skeleton-content">
                 <div class="chat-skeleton-line"></div>

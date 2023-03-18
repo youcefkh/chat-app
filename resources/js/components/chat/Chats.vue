@@ -16,7 +16,7 @@
 
         <h5 class="font-size-15 mb-2 mt-10">Recent</h5>
 
-        <div class="messages-history">
+        <div class="page-content messages-history">
             <notification-skeleton v-if="isLoading" />
             <h5 v-else-if="!messagesHistory.length" class="font-size-16 mt-5 text-muted">No results found!</h5>
             <div class="chats" v-else>
@@ -163,20 +163,6 @@ export default {
 
 .chat-user-message {
     font-size: 14px;
-}
-
-.messages-history::-webkit-scrollbar-track {
-    background-color: #f5f5f5;
-}
-
-.messages-history::-webkit-scrollbar {
-    width: 10px;
-    background-color: #f5f5f5;
-}
-
-.messages-history::-webkit-scrollbar-thumb {
-    border-radius: 10px;
-    background: #7269ef;
 }
 
 .loading-progress {

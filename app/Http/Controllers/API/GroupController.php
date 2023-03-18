@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\API;
 
+use Carbon\Carbon;
+use App\Models\Room;
 use App\Models\User;
 use App\Models\Group;
 use App\Models\GroupMember;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\Room;
+use Illuminate\Support\Facades\Auth;
 
 class GroupController extends Controller
 {
@@ -24,7 +26,11 @@ class GroupController extends Controller
      */
     public function index()
     {
-        //
+        $user_id = Auth::user()->id;
+
+        return Group::join('group_members AS members', 'groups.id', '=', 'members.group_id')
+            ->where('members.user_id', '=', $user_id)
+            ->get(['groups.*']);
     }
 
     /**
@@ -35,9 +41,18 @@ class GroupController extends Controller
      */
     public function store(Request $request)
     {
-        $group = Group::create([
-            'name' => $request->name
-        ]);
+        $values = ['name' => $request->name];
+        
+        if ($request->hasFile('picture')) {
+            $media = $request->file('picture');
+            $media_name = $request->name . '-group-' . Carbon::now()->timestamp . '-' . $media->getClientOriginalName();
+            $media->move(public_path('/media'), $media_name);
+
+            $group_picture = "/media/" . $media_name;
+            $values['picture'] = $group_picture;
+        }
+
+        $group = Group::create($values);
 
         GroupMember::create([
             'group_id' => $group->id,
@@ -49,6 +64,8 @@ class GroupController extends Controller
         ]);
 
         return response()->json([
+            "id" => $group->id,
+            "picture" => $group->picture,
             "message" => $group->name . " group was created by " . $request->user()->name
         ], 201);
     }
@@ -133,7 +150,7 @@ class GroupController extends Controller
             'users' => ['required']
         ]);
 
-        foreach($request->users as $ids){
+        foreach ($request->users as $ids) {
             GroupMember::create([
                 'user_id' => $ids,
                 'group_id' => $group_id

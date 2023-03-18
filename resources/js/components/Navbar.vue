@@ -55,9 +55,9 @@ export default {
                     route: { name: "dashboard", params: null, query: {page: "chats"} },
                 },
                 {
-                    title: "Game",
-                    icon: "mdi-ferris-wheel",
-                    route: { name: "game", params: null, query: {page: "game"} },
+                    title: "Groups",
+                    icon: "mdi-account-group-outline",
+                    route: { name: "dashboard", params: null, query: {page: "groups"} },
                 },
             ],
         };

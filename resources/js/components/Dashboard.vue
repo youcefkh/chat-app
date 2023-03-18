@@ -11,6 +11,7 @@
                 @messageRecieved="getMessagesHistory"
                 @search="filterMessagesHistory"
             />
+            <groups v-if="currentPage == 'groups'" />
         </div>
 
         <chat
@@ -27,6 +28,7 @@
 import Navbar from "./Navbar.vue";
 import Profile from "./chat/Profile.vue";
 import Chats from "./chat/Chats.vue";
+import groups from "./chat/Groups.vue";
 import Chat from "../components/Chat.vue";
 import axiosClient from "../axios";
 import store from "../store";
@@ -50,6 +52,7 @@ export default {
         Profile,
         Chats,
         Chat,
+        groups
     },
 
     computed: {

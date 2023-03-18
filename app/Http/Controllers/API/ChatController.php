@@ -243,9 +243,10 @@ class ChatController extends Controller
             )->first();
         }
 
-        return Recipient::where('room_id', $room->id)->where('recipient_id', Auth::user()->id)
+        return $room ? Recipient::where('room_id', $room->id)->where('recipient_id', Auth::user()->id)
                 ->update([
                     "is_seen" => true
-                ]);
+                ])
+                : null;
     }
 }

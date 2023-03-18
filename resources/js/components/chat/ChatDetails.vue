@@ -37,7 +37,7 @@
 
         <hr class="my-10 text-gray-400" />
 
-        <div class="infos px-3">
+        <div class="page-content px-3 overflow-y-auto">
             <div class="about bg-white p-6 mb-3 rounded">
                 <header
                     class="mb-8 d-flex justify-content-between align-items-center"
@@ -107,11 +107,13 @@ export default {
 
 <style scoped>
 .chat-sidebar {
+    display: flex;
+    flex-direction: column;
     height: 100vh;
     width: 380px;
     min-width: 380px;
     background-color: #f5f7fb;
-    overflow: auto;
+    overflow: hidden;
     border-left: 4px solid #f0eff5;
     position: absolute;
     right: 0;

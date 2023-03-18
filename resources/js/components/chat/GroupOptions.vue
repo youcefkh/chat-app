@@ -36,7 +36,7 @@
                                 </v-col>
                             </v-row>
                             <div class="selected-members">
-                                <v-list class="overflow-hidden d-flex">
+                                <v-list class="overflow-hidden d-flex flex-wrap">
                                     <v-chip
                                         class="ma-2"
                                         closable
@@ -58,10 +58,10 @@
                             <v-list class="overflow-hidden suggested-members">
                                 <p class="text-h6">Suggestions</p>
                                 <div v-if="!memberSearchField" class="info">
-                                    <span>Start typing to get suggestions</span>
+                                    <span class="text-muted">Start typing to get suggestions</span>
                                 </div>
                                 <div v-else-if="isLoadingSearch" class="info">
-                                    <span>Loading ...</span>
+                                    <span class="text-muted">Loading ...</span>
                                 </div>
                                 <div
                                     v-else-if="
@@ -70,7 +70,7 @@
                                     "
                                     class="info"
                                 >
-                                    <span>No results found</span>
+                                    <span class="text-muted">No results found</span>
                                 </div>
                                 <v-row
                                     v-else
@@ -110,14 +110,14 @@
                         </v-btn>
                         <v-btn
                             color="primary"
-                            variant="text"
+                            variant="flat"
                             @click="addMember"
                             :disabled="
                                 isLoadingDialog ||
                                 selectedNewMembers.length == 0
                             "
                         >
-                            Add
+                            Add member
                         </v-btn>
                     </v-card-actions>
                 </v-card>
@@ -296,15 +296,12 @@ export default {
 #expantionPanel {
     max-height: 0px;
     overflow: hidden;
-    transition: max-height 0.5s ease-in-out 0s;
+    transition: all 0.5s ease-in-out 0s;
     border: none;
 }
 
 #expantionPanel.active {
-    max-height: 500px;
-    overflow-y: auto;
-    border: 1px solid;
-    border-radius: 5px;
+    max-height: 1500px;
 }
 
 .suggested-members label {

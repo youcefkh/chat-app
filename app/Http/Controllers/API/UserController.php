@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Auth\Events\Login;
 use App\Http\Controllers\Controller;
 use App\Models\GroupMember;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -91,7 +92,7 @@ class UserController extends Controller
      */
     public function search(Request $request)
     {
-        return User::where('name', 'LIKE', "%$request->search%")->take(4)->get(['id', 'name']);
+        return User::where('name', 'LIKE', "%$request->search%")->where('id', '!=', Auth::user()->id)->take(10)->get(['id', 'name', 'picture']);
     }
 
     /**

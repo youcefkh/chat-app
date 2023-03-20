@@ -217,17 +217,20 @@
         ></v-text-field>
 
         <div class="page-content groups-container mt-15 flex-1 overflow-auto">
-            <div
-                class="group-block d-flex align-items-center gap-2 mb-5 p-2 rounded"
-                v-for="group in groups"
-                :key="group.id"
-                @click="openConversation(group.id)"
-            >
-                <thumbnail :image="group.picture" :onlineIcon="false" />
-                <div class="flex-grow-1">
-                    <h5 class="text-truncate font-size-15 mb-0">
-                        #{{ group.name }}
-                    </h5>
+            <group-skeleton v-if="isLoadingGroups" />
+            <div v-else>
+                <div
+                    class="group-block d-flex align-items-center gap-2 mb-5 p-2 rounded"
+                    v-for="group in groups"
+                    :key="group.id"
+                    @click="openConversation(group.id)"
+                >
+                    <thumbnail :image="group.picture" :onlineIcon="false" />
+                    <div class="flex-grow-1">
+                        <h5 class="text-truncate font-size-15 mb-0">
+                            #{{ group.name }}
+                        </h5>
+                    </div>
                 </div>
             </div>
         </div>
@@ -236,9 +239,10 @@
 
 <script>
 import axiosClient from "../../axios";
+import GroupSkeleton from '../skeletons/GroupSkeleton.vue';
 import Thumbnail from "./Thumbnail.vue";
 export default {
-    components: { Thumbnail },
+    components: { Thumbnail, GroupSkeleton },
     data() {
         return {
             searchValue: null,
@@ -252,7 +256,8 @@ export default {
             memberSearchField: null,
             isLoadingSearch: false,
             isLoadingDialog: false,
-            isExpand: false
+            isExpand: false,
+            isLoadingGroups: false,
         };
     },
 
@@ -267,10 +272,12 @@ export default {
         },
 
         async getGroups() {
+            this.isLoadingGroups = true;
             try {
                 const response = await axiosClient.get("/group");
                 this.groups = response.data;
                 this.groupsBis = this.groups;
+                this.isLoadingGroups = false;
             } catch (error) {
                 console.log(error);
             }
@@ -305,7 +312,7 @@ export default {
 
             try {
                 //create group
-                const result = await axiosClient.post("/group", formData, {
+                const {data} = await axiosClient.post("/group", formData, {
                                     headers: {
                                         "Content-Type": "multipart/form-data"
                                     },
@@ -313,12 +320,18 @@ export default {
 
                 //add members
                 if(userIds.length > 0){
-                    await axiosClient.post(`/group-members/${result.data.id}`, {
+                    await axiosClient.post(`/group-members/${data.group.id}`, {
                         users: userIds,
                     });
                 }
 
-                this.getGroups();
+                this.groups.push({
+                    id: data.group.id,
+                    name: data.group.name,
+                    picture: data.group.picture
+                });
+
+                this.groupsBis = this.groups;
 
             } catch (error) {
                 console.log(error);

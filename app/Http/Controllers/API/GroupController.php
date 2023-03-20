@@ -52,7 +52,9 @@ class GroupController extends Controller
             $values['picture'] = $group_picture;
         }
 
-        $group = Group::create($values);
+        $data = Group::create($values);
+
+        $group = Group::find($data->id); //to get the default picture in case it wasn't assigned any
 
         GroupMember::create([
             'group_id' => $group->id,
@@ -64,8 +66,7 @@ class GroupController extends Controller
         ]);
 
         return response()->json([
-            "id" => $group->id,
-            "picture" => $group->picture,
+            "group" => $group,
             "message" => $group->name . " group was created by " . $request->user()->name
         ], 201);
     }
@@ -78,7 +79,12 @@ class GroupController extends Controller
      */
     public function show($id)
     {
-        return Group::find($id);
+        //check if the user is a member the group
+        $member = GroupMember::where('group_id', $id)->where('user_id', Auth::user()->id)->first();
+        return $member ? Group::find($id)
+                        : response()->json([
+                            "message" => "you are not a member of this group"
+                        ], 403);
     }
 
     /**

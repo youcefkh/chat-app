@@ -67,6 +67,13 @@ class ChatController extends Controller
     public function getMessages(string $type, int $recipient_id)
     {
         if ($type == "group") {
+            //check if the user is a member the group
+            $member = GroupMember::where('group_id', $recipient_id)->where('user_id', Auth::user()->id)->first();
+            if ($member == null)
+                return response()->json([
+                    "message" => "you are not a member of this group"
+                ], 403);
+
             return Message::join('message_recipients AS recipients', 'messages.id', '=', 'recipients.message_id')
                 ->join('users', 'users.id', '=', 'messages.sender_id')
                 ->select('messages.*', 'users.name AS user_name', 'users.picture as user_pic')
@@ -244,9 +251,9 @@ class ChatController extends Controller
         }
 
         return $room ? Recipient::where('room_id', $room->id)->where('recipient_id', Auth::user()->id)
-                ->update([
-                    "is_seen" => true
-                ])
-                : null;
+            ->update([
+                "is_seen" => true
+            ])
+            : null;
     }
 }

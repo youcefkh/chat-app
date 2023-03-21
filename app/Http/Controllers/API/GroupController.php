@@ -79,12 +79,7 @@ class GroupController extends Controller
      */
     public function show($id)
     {
-        //check if the user is a member the group
-        $member = GroupMember::where('group_id', $id)->where('user_id', Auth::user()->id)->first();
-        return $member ? Group::find($id)
-                        : response()->json([
-                            "message" => "you are not a member of this group"
-                        ], 403);
+        return Group::find($id);
     }
 
     /**

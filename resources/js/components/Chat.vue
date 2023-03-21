@@ -32,13 +32,18 @@
                     </h5>
                 </div>
 
-                <div>
+                <div v-if="!isForbidden">
                     <v-icon class="text-muted chat-options" icon="mdi-dots-horizontal" @click="isDisplayDetails=true"/>
                 </div>
             </header>
+            <!-- error message -->
+            <div v-if="isForbidden" class="error-layer">
+                <v-icon icon="mdi-lock" class="icon"/>
+                <p>You can't access this conversation</p>
+            </div>
 
             <!-- chat box -->
-            <div ref="chatArea" class="chat-area rounded">
+            <div v-else ref="chatArea" class="chat-area rounded">
                 <chat-skeleton v-if="isdisplaySkeleton" />
                 <!-- messages -->
                 <div v-else>
@@ -268,6 +273,7 @@ export default {
 
     data() {
         return {
+            isForbidden: false,
             convType: null,
             convId: null,
             userId: null,
@@ -326,6 +332,7 @@ export default {
                 this.messages = [];
                 this.pagination = 0;
                 this.isDisplaySeeMoreBtn = true;
+                this.isForbidden = false;
 
                 if (params.type === "group") {
                     this.friend = null;
@@ -553,6 +560,10 @@ export default {
                     }
                 })
                 .catch((err) => {
+                    if(err.request.status == 403) {
+                        this.isForbidden = true;
+                        return;
+                    }
                     console.log(err);
                 })
                 .then((result) => {
@@ -933,6 +944,24 @@ main > header {
 
 .chat-options {
     cursor: pointer;
+}
+
+.error-layer {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: #000000b5;
+    color: #fff;
+}
+
+.error-layer .icon {
+    font-size: 10rem;
+}
+
+.error-layer p {
+    font-size: 2rem;
 }
 
 @keyframes wave {

@@ -59,6 +59,11 @@ export default {
                     icon: "mdi-account-group-outline",
                     route: { name: "dashboard", params: null, query: {page: "groups"} },
                 },
+                {
+                    title: "Contacts",
+                    icon: "mdi-contacts-outline",
+                    route: { name: "dashboard", params: null, query: {page: "contacts"} },
+                },
             ],
         };
     },

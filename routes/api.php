@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\ChatController;
+use App\Http\Controllers\API\ContactController;
 use App\Http\Controllers\API\GroupController;
 use App\Http\Controllers\API\UserController;
 use App\Models\Chat;
@@ -51,3 +52,5 @@ Route::delete('group-members/{user_id}', [GroupController::class, 'deleteMember'
 Route::get('group-members/search/{group_id}', [GroupController::class, 'search'])->name('search');
 Route::get('group-members/{group_id}/{user_id}', [GroupController::class, 'isMember'])->name('isMember');
 Route::post('group-members/{group_id}', [GroupController::class, 'addMembers'])->name('addMembers');
+
+Route::apiResource('contact', ContactController::class);

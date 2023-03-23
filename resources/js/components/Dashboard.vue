@@ -12,6 +12,7 @@
                 @search="filterMessagesHistory"
             />
             <groups v-if="currentPage == 'groups'" />
+            <contacts v-if="currentPage == 'contacts'" />
         </div>
 
         <chat
@@ -32,6 +33,7 @@ import groups from "./chat/Groups.vue";
 import Chat from "../components/Chat.vue";
 import axiosClient from "../axios";
 import store from "../store";
+import Contacts from './chat/Contacts.vue';
 export default {
     data() {
         return {
@@ -52,7 +54,8 @@ export default {
         Profile,
         Chats,
         Chat,
-        groups
+        groups,
+        Contacts
     },
 
     computed: {

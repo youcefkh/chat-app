@@ -15,9 +15,16 @@
         <div class="page-content contacts-container mt-15 flex-1 overflow-auto">
             <group-skeleton v-if="isLoadingContacts" />
             <div v-else>
-                <p v-if="Object.keys(contacts).length == 0" class="text-muted text-center">You don't have any contacts</p>
+                <p
+                    v-if="Object.keys(contacts).length == 0"
+                    class="text-muted text-center"
+                >
+                    You don't have any contacts
+                </p>
                 <div v-for="(group, key) in contacts" :key="key">
-                    <h5 class="p-2 text-purple-lighten-2 font-size-16">{{key}}</h5>
+                    <h5 class="p-2 text-purple-lighten-2 font-size-16">
+                        {{ key }}
+                    </h5>
                     <div
                         class="contact-block d-flex align-items-center gap-2 mb-5 p-2 rounded"
                         v-for="contact in group"
@@ -33,6 +40,42 @@
                                 {{ contact.name }}
                             </h5>
                         </div>
+
+                        <v-menu>
+                            <template v-slot:activator="{ props }">
+                                <v-btn
+                                    class="text-muted"
+                                    variant="text"
+                                    icon="mdi-dots-vertical"
+                                    size="small"
+                                    v-bind="props"
+                                ></v-btn>
+                            </template>
+
+                            <v-list class="contact-actions">
+                                <v-list-item class="p-0">
+                                    <v-list-item-title>
+                                        <button
+                                            class="p-2"
+                                            @click="
+                                                removeContact(contact.pivot.id)
+                                            "
+                                        >
+                                            <p
+                                                class="mr-10 mb-0 d-inline-block"
+                                            >
+                                                Remove
+                                            </p>
+                                            <v-icon
+                                                class="text-muted"
+                                                size="small"
+                                                icon="mdi-trash-can-outline"
+                                            />
+                                        </button>
+                                    </v-list-item-title>
+                                </v-list-item>
+                            </v-list>
+                        </v-menu>
                     </div>
                 </div>
             </div>
@@ -41,7 +84,7 @@
 </template>
 
 <script>
-import { isProxy, toRaw } from 'vue';
+import { isProxy, toRaw } from "vue";
 import axiosClient from "../../axios";
 import GroupSkeleton from "../skeletons/GroupSkeleton.vue";
 import Thumbnail from "./Thumbnail.vue";
@@ -58,19 +101,20 @@ export default {
 
     methods: {
         search() {
-            if(!this.searchValue){
+            if (!this.searchValue) {
                 this.contacts = this.contactsBis;
                 return;
             }
             let arr = [];
-            Object.values(this.contactsBis).forEach(element => {
+            Object.values(this.contactsBis).forEach((element) => {
                 let result = element.filter(({ name }) => {
                     return (
-                        name.toLowerCase().indexOf(this.searchValue.toLowerCase()) >
-                        -1
+                        name
+                            .toLowerCase()
+                            .indexOf(this.searchValue.toLowerCase()) > -1
                     );
                 });
-                arr.push(...result)
+                arr.push(...result);
             });
             this.contacts = this.groupByLetter(arr);
         },
@@ -80,7 +124,7 @@ export default {
             try {
                 const response = await axiosClient.get("/contact");
                 this.contacts = this.groupByLetter(response.data);
-                this.contactsBis = this.contacts
+                this.contactsBis = this.contacts;
                 this.isLoadingContacts = false;
             } catch (error) {
                 console.log(error);
@@ -106,6 +150,24 @@ export default {
                 params: { type: "private", id },
                 query,
             });
+        },
+
+        async removeContact(id) {
+            try {
+                await axiosClient.delete(`/contact/${id}`);
+                let arr = [];
+                Object.values(this.contactsBis).forEach((element) => {
+                    let result = element.filter(({ pivot }) => {
+                        return pivot.id !== id;
+                    });
+                    arr.push(...result);
+                });
+                this.contacts = this.groupByLetter(arr);
+                this.contactsBis = this.contacts;
+
+            } catch (error) {
+                console.log(error);
+            }
         },
     },
 
@@ -140,5 +202,10 @@ label {
 
 .contact-block:hover {
     background-color: #e6ebf5;
+}
+
+.contact-actions .v-list-item-title:hover {
+    background: #ebedf1;
+    cursor: pointer;
 }
 </style>

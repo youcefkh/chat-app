@@ -76,7 +76,7 @@
                                                         >
                                                             <v-chip
                                                                 class="ma-2"
-                                                                closable
+                                                                append-icon="mdi-close-circle"
                                                                 v-for="(
                                                                     user, index
                                                                 ) in selectedNewMembers"

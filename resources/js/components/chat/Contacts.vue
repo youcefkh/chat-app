@@ -2,6 +2,132 @@
     <div class="d-flex flex-column h-100">
         <header class="d-flex justify-content-between align-items-center">
             <h4 class="title mb-0">contacts</h4>
+
+            <div>
+                <div class="mb-3">
+                    <v-dialog v-model="dialog" persistent>
+                <template v-slot:activator="{ props }">
+                    <div
+                                data-title="Add Contact"
+                                data-title-position="bottom"
+                            >
+                                <v-btn
+                                    icon="mdi-account-plus-outline"
+                                    variant="text"
+                                    v-bind="props"
+                                ></v-btn>
+                            </div>
+                </template>
+                <v-card>
+                    <v-progress-linear
+                        v-if="isLoadingDialog"
+                        color="primary"
+                        indeterminate
+                    ></v-progress-linear>
+                    <v-card-title class="d-flex">
+                        <v-icon icon="mdi-account-plus-outline" />
+                        <span class="ml-1 text-h5">Add new contact</span>
+                    </v-card-title>
+                    <v-card-text>
+                        <v-container>
+                            <v-row>
+                                <v-col cols="12">
+                                    <v-text-field
+                                        label="Search"
+                                        required
+                                        @keyup="searchUser"
+                                        v-model="contactSearchField"
+                                    ></v-text-field>
+                                </v-col>
+                            </v-row>
+                            <div class="selected-members">
+                                <v-chip-group class="overflow-hidden d-flex flex-wrap">
+                                    <v-chip
+                                        class="ma-2"
+                                        append-icon="mdi-close-circle"
+                                        v-for="(
+                                            user, index
+                                        ) in selectedNewContacts"
+                                        :key="index"
+                                        @click="removeSelectedContact(user.id)"
+                                    >
+                                        <v-list-item
+                                            class="p-0"
+                                            :title="user.name"
+                                            :prepend-avatar="user.picture"
+                                        ></v-list-item>
+                                    </v-chip>
+                                </v-chip-group>
+                            </div>
+
+                            <v-list class="overflow-hidden suggested-members">
+                                <p class="text-h6">Suggestions</p>
+                                <div v-if="!contactSearchField" class="info">
+                                    <span class="text-muted">Start typing to get suggestions</span>
+                                </div>
+                                <div v-else-if="isLoadingSearch" class="info">
+                                    <span class="text-muted">Loading ...</span>
+                                </div>
+                                <div
+                                    v-else-if="
+                                        contactSearchField &&
+                                        suggestedUsers.length == 0
+                                    "
+                                    class="info"
+                                >
+                                    <span class="text-muted">No results found</span>
+                                </div>
+                                <v-row
+                                    v-else
+                                    v-for="(user, index) in suggestedUsers"
+                                    :key="index"
+                                    class="m-0 justify-space-between"
+                                >
+                                    <v-col cols="8" class="p-0">
+                                        <label :for="user.id" class="w-100">
+                                            <v-list-item
+                                                :title="user.name"
+                                                :subtitle="user.email"
+                                                :prepend-avatar="user.picture"
+                                            ></v-list-item>
+                                        </label>
+                                    </v-col>
+                                    <v-col cols="4" class="p-0">
+                                        <v-checkbox
+                                            v-model="selectedNewContacts"
+                                            :value="user"
+                                            :id="user.id + ''"
+                                        ></v-checkbox>
+                                    </v-col>
+                                </v-row>
+                            </v-list>
+                        </v-container>
+                    </v-card-text>
+
+                    <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn
+                            color="primary"
+                            variant="text"
+                            @click="discardDialog"
+                        >
+                            Discard
+                        </v-btn>
+                        <v-btn
+                            color="primary"
+                            variant="flat"
+                            @click="addContact"
+                            :disabled="
+                                isLoadingDialog ||
+                                selectedNewContacts.length == 0"
+                        >
+                            Add Contact
+                        </v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
+                </div>
+            </div>
         </header>
 
         <v-text-field
@@ -96,6 +222,12 @@ export default {
             contacts: {},
             contactsBis: {},
             isLoadingContacts: false,
+            dialog: false,
+            selectedNewContacts: [],
+            suggestedUsers: [],
+            contactSearchField: null,
+            isLoadingSearch: false,
+            isLoadingDialog: false,
         };
     },
 
@@ -168,6 +300,71 @@ export default {
             } catch (error) {
                 console.log(error);
             }
+        },
+
+        async searchUser() {
+            if (!this.contactSearchField) return;
+            this.isLoadingSearch = true;
+            this.suggestedUsers = [];
+            try {
+                const result = await axiosClient.get(
+                    `contact-suggestions/search`,
+                    {
+                        params: {
+                            search: this.contactSearchField,
+                        },
+                    }
+                );
+                this.suggestedUsers = result.data;
+            } catch (error) {}
+            this.isLoadingSearch = false;
+        },
+
+        async addContact() {
+            this.isLoadingDialog = true;
+            const userIds = this.selectedNewContacts.map(
+                (memeber) => memeber.id
+            );
+
+            try {
+                userIds.forEach(async (id) => {
+                    await axiosClient.post(`/contact`, {
+                        id: id,
+                    });
+                });
+
+                /* push new contacts to array */
+                let arr = [];
+                Object.values(this.contactsBis).forEach((element) => {
+                    let result = element;
+                    arr.push(...result);
+                });
+
+                arr.push(...this.selectedNewContacts);
+                
+                this.contacts = this.groupByLetter(arr);
+                this.contactsBis = this.contacts;
+                
+                this.isLoadingDialog = false;
+                
+            } catch (error) {
+                console.log(error);
+            }
+
+            this.discardDialog();
+        },
+
+        discardDialog() {
+            this.dialog = false;
+            this.selectedNewContacts = [];
+            this.suggestedUsers = [];
+            this.contactSearchField = null;
+        },
+
+        removeSelectedContact(id) {
+            this.selectedNewContacts = this.selectedNewContacts.filter(
+                (contact) => (contact.id !== id)
+            );
         },
     },
 

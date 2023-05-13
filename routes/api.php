@@ -54,3 +54,4 @@ Route::get('group-members/{group_id}/{user_id}', [GroupController::class, 'isMem
 Route::post('group-members/{group_id}', [GroupController::class, 'addMembers'])->name('addMembers');
 
 Route::apiResource('contact', ContactController::class);
+Route::get('contact-suggestions/search', [ContactController::class, 'search'])->name('search');

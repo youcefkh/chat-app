@@ -16,8 +16,8 @@ class UserController extends Controller
 
     public function __construct()
     {
-       $this->middleware('auth:sanctum', ['except' => ['store']]);
-       $this->middleware('XssSanitization', ['only' => ['store', 'update']]);
+        $this->middleware('auth:sanctum', ['except' => ['store']]);
+        $this->middleware('XssSanitization', ['only' => ['store', 'update']]);
     }
 
     /**
@@ -38,11 +38,11 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        if($this->validator($request) === null){
+        if ($this->validator($request) === null) {
             return $this->create($request);
         }
     }
-    
+
     /**
      * Display the specified resource.
      *
@@ -63,9 +63,23 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        if($this->validator($request) === null){
-            return $this->update($request, $user);
+        if ($request->hasFile('picture')) {
+            $user_id = $user->id;
+            $media = $request->file('picture');
+            $media_name = $user_id . '-' . Carbon::now()->timestamp . '-' . $media->getClientOriginalName();
+            $media->move(public_path('/media'), $media_name);
+
+            $media_path = "/media/" . $media_name;
+            $user->picture = $media_path;
+            return $user->save();
         }
+
+        $request->validate([
+            'name' => ['required', 'regex:/^[\pL\s]+$/u', 'max:255'],
+            'password' => ['string', 'min:8', 'confirmed'],
+        ]);
+
+        return $user->update($request->all());
     }
 
     /**
@@ -106,7 +120,7 @@ class UserController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
     }
-    
+
     /**
      * Create a new user instance after a valid registration.
      */
@@ -125,7 +139,7 @@ class UserController extends Controller
             'group_id' => 1,
             'user_id' => $user->id
         ]);
-    
+
         return response()->json([
             'user' => $user,
             'token' => $user->createToken(time())->plainTextToken

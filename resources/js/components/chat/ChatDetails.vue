@@ -107,9 +107,10 @@ export default {
 
 <style scoped>
 .chat-sidebar {
+    visibility: hidden;
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100%;
     width: 380px;
     min-width: 380px;
     background-color: #f5f7fb;
@@ -123,8 +124,7 @@ export default {
 }
 
 .chat-sidebar.active {
-    position: relative;
-    right: 0;
+    visibility: visible;
     transform: translateX(0px);
 }
 

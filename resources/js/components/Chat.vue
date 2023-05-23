@@ -224,10 +224,10 @@
                     </div>
                 </v-form>
             </div>
+            <!-- chat details -->
+                <chat-details :class="{'active': isDisplayDetails}" ref="chatDetails" :conversation="conversation" :isOnline="isOnline" :convType="convType" @hideDetails="isDisplayDetails=false"/>
         </main>
 
-        <!-- chat details -->
-            <chat-details :class="{'active': isDisplayDetails}" ref="chatDetails" :conversation="conversation" :isOnline="isOnline" :convType="convType" @hideDetails="isDisplayDetails=false"/>
 
         <!-- display image in full size -->
         <div
@@ -995,8 +995,9 @@ main > header {
 }
 
 @media only screen and (max-width: 1200px) {
-    .users-list {
-        left: -70px;
+    main#app {
+        height: 100%;
+        width: 100%;
     }
 }
 </style>

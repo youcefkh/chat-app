@@ -1,39 +1,53 @@
 <template>
-    <nav class="py-4">
-        <div class="logo">
-            <v-icon icon="mdi-wechat" />
-        </div>
+    <div>
+        <nav class="py-4 nav-desktop">
+            <div class="logo">
+                <v-icon icon="mdi-wechat" />
+            </div>
 
-        <div class="links my-auto">
-            <ul role="tablist" class="side-menu-nav d-flex flex-column justify-content-center nav nav-pills">
-                <li v-for="link in links" :key="link.name" class="nav-item" :data-title="link.title">
-                    <router-link
-                        :to="{
-                            name: link.route.name,
-                            params: link.route.params,
-                            query: link.route.query
-                        }"
-                        class="nav-link"
-                        :class="{'active-link': link.route.query.page == currentPage}"
+            <div class="links my-auto">
+                <ul
+                    role="tablist"
+                    class="side-menu-nav d-flex flex-column justify-content-center nav nav-pills"
+                >
+                    <li
+                        v-for="link in links"
+                        :key="link.name"
+                        class="nav-item"
+                        :data-title="link.title"
                     >
-                        <v-icon :icon="link.icon" />
-                    </router-link>
-                </li>
-            </ul>
-        </div>
+                        <router-link
+                            :to="{
+                                name: link.route.name,
+                                params: link.route.params,
+                                query: link.route.query,
+                            }"
+                            class="nav-link"
+                            :class="{
+                                'active-link':
+                                    link.route.query.page == currentPage,
+                            }"
+                        >
+                            <v-icon :icon="link.icon" />
+                        </router-link>
+                    </li>
+                </ul>
+            </div>
 
-        <div class="additional-links mt-auto">
-            <ul role="tablist" class="side-menu-nav d-flex flex-column justify-content-center nav nav-pills">
-                <li class="nav-item" data-title="Logout" @click="logout">
-                    <button
-                        class="nav-link"
-                    >
-                        <v-icon icon="mdi-logout" />
-                    </button>
-                </li>
-            </ul>
-        </div>
-    </nav>
+            <div class="additional-links mt-auto">
+                <ul
+                    role="tablist"
+                    class="side-menu-nav d-flex flex-column justify-content-center nav nav-pills"
+                >
+                    <li class="nav-item" data-title="Logout" @click="logout">
+                        <button class="nav-link">
+                            <v-icon icon="mdi-logout" />
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </div>
 </template>
 
 <script>
@@ -47,31 +61,47 @@ export default {
                 {
                     title: "My Profile",
                     icon: "mdi-account-circle-outline",
-                    route: { name: "dashboard", params: null, query: {page: "profile"} },
+                    route: {
+                        name: "dashboard",
+                        params: null,
+                        query: { page: "profile" },
+                    },
                 },
                 {
                     title: "Chats",
                     icon: "mdi-message-processing-outline",
-                    route: { name: "dashboard", params: null, query: {page: "chats"} },
+                    route: {
+                        name: "dashboard",
+                        params: null,
+                        query: { page: "chats" },
+                    },
                 },
                 {
                     title: "Groups",
                     icon: "mdi-account-group-outline",
-                    route: { name: "dashboard", params: null, query: {page: "groups"} },
+                    route: {
+                        name: "dashboard",
+                        params: null,
+                        query: { page: "groups" },
+                    },
                 },
                 {
                     title: "Contacts",
                     icon: "mdi-contacts-outline",
-                    route: { name: "dashboard", params: null, query: {page: "contacts"} },
+                    route: {
+                        name: "dashboard",
+                        params: null,
+                        query: { page: "contacts" },
+                    },
                 },
             ],
         };
     },
-    
+
     watch: {
         "$route.query.page": {
             handler(value) {
-                if(value) {
+                if (value) {
                     this.currentPage = value;
                 }
             },
@@ -130,8 +160,30 @@ nav .logo {
     text-align: center;
     width: 56px;
 }
-.side-menu-nav .nav-item .nav-link.active-link, .side-menu-nav .nav-item .nav-link:hover {
+.side-menu-nav .nav-item .nav-link.active-link,
+.side-menu-nav .nav-item .nav-link:hover {
     background-color: #f7f7ff;
     color: #7269ef !important;
+}
+
+@media only screen and (max-width: 1200px) {
+    nav {
+        flex-direction: row;
+        width: 100%;
+        height: 66px;
+        padding: 0 15px !important;
+    }
+
+    nav .links {
+        margin: 0 auto !important;
+    }
+
+    nav .links ul {
+        flex-direction: row !important;
+    }
+
+    nav .additional-links {
+        margin: 0 !important;
+    } 
 }
 </style>

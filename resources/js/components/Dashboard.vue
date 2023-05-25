@@ -17,9 +17,11 @@
 
         <chat
             class="chat flex-grow-1"
+            :class="{'active': isShowChat}"
             :chat="chat"
             @messageSent="getMessagesHistory"
             @seeMessages="resetNotificationsCounter"
+            @hideChat="hideChat"
             :onlineUsers="onlineUsers"
         />
     </div>
@@ -62,6 +64,14 @@ export default {
         user() {
             return store.state.user.data;
         },
+
+        isMobile() {
+            return store.state.isMobile;
+        },
+
+        isShowChat() {
+            return store.state.isShowChat;
+        },
     },
 
     watch: {
@@ -75,8 +85,14 @@ export default {
             immediate: true,
         },
         "$route.params": {
-            handler(params) {
+            handler(params, oldParms) {
                 this.chat = { type: params.type, id: params.id };
+                /* const chat = document.getElementById('chatContainer')
+                if(JSON.stringify(params) === JSON.stringify(oldParms)){
+                    chat ? chat.classList.remove('active') : null;
+                }else {
+                    chat ? chat.classList.add('active') : null;
+                } */
             },
             deep: true,
             immediate: true,
@@ -180,11 +196,29 @@ export default {
                 }
             );
         },
+
+        checkWindowSize (e) {
+            if(window.innerWidth > 900) {
+                store.commit('setIsMobile', false);
+            }else {
+                store.commit('setIsMobile', true);
+            }
+        },
+
+        hideChat() {
+            document.getElementById('chatContainer').classList.remove('active')
+        }
     },
 
     mounted() {
+        this.checkWindowSize();
         this.getMessagesHistory(true);
         this.getOnlineUsers();
+        window.addEventListener("resize", this.checkWindowSize);
+    },
+
+    unmounted() {
+        window.removeEventListener("resize", this.checkWindowSize);
     },
 };
 </script>
@@ -198,9 +232,6 @@ export default {
     overflow: hidden;
 }
 
-@media only screen and (max-width: 1200px) {
-    /*Tablets [601px -> 1200px]*/
-}
 @media only screen and (max-width: 1200px) {
     /*Big smartphones [426px -> 600px]*/
     .main-container {
@@ -224,6 +255,26 @@ export default {
         grid-area: 2 / 1 / 3 / 3;
         height: fit-content;
         max-width: 100vw;
+    }
+}
+
+@media only screen and (max-width: 900px) {
+    .sidebar {
+        width: 100vw !important;
+    }
+    .chat {
+        width: 0 !important;
+        overflow: hidden;
+    }
+
+    .chat.active {
+        width: 100% !important;
+    }
+
+    .sidebar:has(+ .chat.active) {
+        width: 0 !important;
+        min-width: unset !important;
+        padding: 0 !important;
     }
 }
 </style>

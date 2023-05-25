@@ -20,6 +20,9 @@
                     v-if="conversation"
                     class="d-flex align-items-center gap-3"
                 >
+                    <!-- button for mobile -->
+                    <v-btn v-if="isMobile" variant="text" class="p-0" @click="hideChat"><v-icon icon="mdi-arrow-left" class="text-h5"/></v-btn>
+
                     <thumbnail
                         :image="conversation.picture"
                         :onlineUsers="convType == 'private' ? onlineUsers : null"
@@ -302,6 +305,10 @@ export default {
             return store.state.user.data;
         },
 
+        isMobile() {
+            return store.state.isMobile;
+        },
+
         conversation() {
             if(this.convType == 'private' && this.friend) {
                 return this.friend;
@@ -316,7 +323,7 @@ export default {
             if(this.convType == 'group') return true;
 
             return this.onlineUsers.some((user) => {
-                return user.id === this.friend.id;
+                return this.friend ? user.id === this.friend.id : false;
             });
         },
     },
@@ -679,6 +686,10 @@ export default {
                 console.log(error);
             }
         },
+
+        hideChat() {
+            store.commit('setIsShowChat', false)
+        }
     },
 };
 </script>

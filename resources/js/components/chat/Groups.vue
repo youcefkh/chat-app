@@ -241,6 +241,7 @@
 import axiosClient from "../../axios";
 import GroupSkeleton from '../skeletons/GroupSkeleton.vue';
 import Thumbnail from "./Thumbnail.vue";
+import store from "../../store"
 export default {
     components: { Thumbnail, GroupSkeleton },
     data() {
@@ -363,6 +364,7 @@ export default {
                 params: { type: "group", id },
                 query,
             });
+            store.commit('setIsShowChat', true)
         },
 
         setGroupPicture({target}) {

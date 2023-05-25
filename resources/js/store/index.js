@@ -1,4 +1,5 @@
 import { createStore } from "vuex";
+import { computed } from 'vue'
 import axiosClient from "../axios";
 import Echo from "laravel-echo";
 
@@ -10,7 +11,12 @@ const store = createStore({
             data: {},
             token: null,
         },
-        notifications: {}
+
+        notifications: {},
+
+        isMobile: false,
+
+        isShowChat: false,
     },
     mutations: {
         setUserData(state, payload) {
@@ -19,6 +25,12 @@ const store = createStore({
         setToken(state, payload) {
             state.user.token = payload;
         },
+        setIsMobile (state, payload) {
+            state.isMobile = payload
+        },
+        setIsShowChat (state, payload) {
+            state.isShowChat = payload
+        }
     },
     actions: {
         setStoredState({ commit, dispatch }) {

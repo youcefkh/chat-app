@@ -100,7 +100,8 @@ export default {
 
     watch: {
         "$route.query.page": {
-            handler(value) {
+            handler(value, oldValue) {
+                if (value !== oldValue) store.commit("setIsShowChat", false);
                 if (value) {
                     this.currentPage = value;
                 }
@@ -113,6 +114,10 @@ export default {
     computed: {
         user() {
             return store.state.user.data;
+        },
+
+        isMobile() {
+            return store.state.isMobile;
         },
     },
     methods: {
@@ -184,6 +189,14 @@ nav .logo {
 
     nav .additional-links {
         margin: 0 !important;
-    } 
+    }
+
+    [data-title]:before {
+        top: -40%;
+        left: 50%;
+        bottom: unset;
+        right: unset;
+        transform: translate(-50%, -20%);
+    }
 }
 </style>

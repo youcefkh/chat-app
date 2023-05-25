@@ -141,4 +141,10 @@ export default {
     width: 100%;
     object-fit: cover;
 }
+
+@media only screen and (max-width: 900px) {
+    .chat-sidebar {
+        width: 100%;
+    }
+}
 </style>

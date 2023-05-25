@@ -124,6 +124,7 @@ export default {
                 params: { type, id },
                 query,
             });
+            store.commit('setIsShowChat', true)
         },
 
         recieveMessages() {

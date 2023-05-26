@@ -152,6 +152,8 @@ export default {
                             user_name = obj.u1_name;
                             thumbnail = obj.u1_pic;
                         }
+
+                        let notification_count = this.user.id == user_id ? 0 : obj.unseen_messages; //keep notifications to 0 when messaging myself
                         return {
                             id: obj.id,
                             message: obj.message,
@@ -160,7 +162,7 @@ export default {
                             name: user_name,
                             user_id: user_id,
                             thumbnail: thumbnail,
-                            notification_count: obj.unseen_messages,
+                            notification_count: notification_count,
                             conv_type: "private",
                             conv_id: user_id,
                         };

@@ -15,18 +15,30 @@
                         />
             -->
         <main id="app" class="position-relative">
-            <header class="border-bottom p-4 d-flex align-items-center justify-content-between">
+            <header
+                class="border-bottom p-4 d-flex align-items-center justify-content-between"
+            >
                 <div
                     v-if="conversation"
                     class="d-flex align-items-center gap-3"
                 >
                     <!-- button for mobile -->
-                    <v-btn v-if="isMobile" variant="text" class="p-0" @click="hideChat"><v-icon icon="mdi-arrow-left" class="text-h5"/></v-btn>
+                    <v-btn
+                        v-if="isMobile"
+                        variant="text"
+                        class="p-0"
+                        @click="hideChat"
+                        ><v-icon icon="mdi-arrow-left" class="text-h5"
+                    /></v-btn>
 
                     <thumbnail
                         :image="conversation.picture"
-                        :onlineUsers="convType == 'private' ? onlineUsers : null"
-                        :user_id="convType == 'private' && friend ? friend.id : null"
+                        :onlineUsers="
+                            convType == 'private' ? onlineUsers : null
+                        "
+                        :user_id="
+                            convType == 'private' && friend ? friend.id : null
+                        "
                         :onlineIcon="convType == 'private' ? true : false"
                         style="scale: 1.2"
                     />
@@ -36,12 +48,16 @@
                 </div>
 
                 <div v-if="!isForbidden">
-                    <v-icon class="text-muted chat-options" icon="mdi-dots-horizontal" @click="isDisplayDetails=true"/>
+                    <v-icon
+                        class="text-muted chat-options"
+                        icon="mdi-dots-horizontal"
+                        @click="isDisplayDetails = true"
+                    />
                 </div>
             </header>
             <!-- error message -->
             <div v-if="isForbidden" class="error-layer">
-                <v-icon icon="mdi-lock" class="icon"/>
+                <v-icon icon="mdi-lock" class="icon" />
                 <p>You can't access this conversation</p>
             </div>
 
@@ -228,9 +244,15 @@
                 </v-form>
             </div>
             <!-- chat details -->
-                <chat-details :class="{'active': isDisplayDetails}" ref="chatDetails" :conversation="conversation" :isOnline="isOnline" :convType="convType" @hideDetails="isDisplayDetails=false"/>
+            <chat-details
+                :class="{ active: isDisplayDetails }"
+                ref="chatDetails"
+                :conversation="conversation"
+                :isOnline="isOnline"
+                :convType="convType"
+                @hideDetails="isDisplayDetails = false"
+            />
         </main>
-
 
         <!-- display image in full size -->
         <div
@@ -310,17 +332,17 @@ export default {
         },
 
         conversation() {
-            if(this.convType == 'private' && this.friend) {
+            if (this.convType == "private" && this.friend) {
                 return this.friend;
-            } else if(this.convType == 'group' && this.group) {
+            } else if (this.convType == "group" && this.group) {
                 return this.group;
-            }else {
+            } else {
                 return [];
             }
         },
 
         isOnline() {
-            if(this.convType == 'group') return true;
+            if (this.convType == "group") return true;
 
             return this.onlineUsers.some((user) => {
                 return this.friend ? user.id === this.friend.id : false;
@@ -333,6 +355,8 @@ export default {
             handler(params) {
                 if (this.convType == params.type && this.convId == params.id)
                     return; //when query params change no need to modify chat content
+
+                this.leaveChannel(); //leave previous channel
 
                 this.convType = params.type;
                 this.convId = params.id;
@@ -474,17 +498,7 @@ export default {
         },
 
         receiveMessage() {
-            const convType = this.convType;
-            const recipientId = this.convId;
-            const userId = this.userId;
-            const channelName =
-                convType == "private"
-                    ? Math.max(userId, recipientId) +
-                      "-" +
-                      Math.min(userId, recipientId)
-                    : recipientId; //get something like 17-36 if conv is private
-
-            Echo.private(`chat.${convType}.${channelName}`).listen(
+            Echo.private(this.getChannelName()).listen(
                 "MessageSent",
                 (e) => {
                     this.messages.push({
@@ -505,6 +519,24 @@ export default {
                     this.seeMessages();
                 }
             );
+        },
+
+        leaveChannel() {
+            Echo.leave(this.getChannelName());
+        },
+
+        getChannelName() {
+            const convType = this.convType;
+            const recipientId = this.convId;
+            const userId = this.userId;
+            const channelId =
+                convType == "private"
+                    ? Math.max(userId, recipientId) +
+                      "-" +
+                      Math.min(userId, recipientId)
+                    : recipientId; //get something like 17-36 if conv is private
+            
+            return `chat.${convType}.${channelId}`;
         },
 
         async getFriend() {
@@ -567,7 +599,7 @@ export default {
                     }
                 })
                 .catch((err) => {
-                    if(err.request.status == 403) {
+                    if (err.request.status == 403) {
                         this.isForbidden = true;
                         return;
                     }
@@ -688,8 +720,8 @@ export default {
         },
 
         hideChat() {
-            store.commit('setIsShowChat', false)
-        }
+            store.commit("setIsShowChat", false);
+        },
     },
 };
 </script>

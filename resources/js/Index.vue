@@ -4,13 +4,16 @@
             <nav
                 class="d-flex flex-row justify-content-between align-items-center"
             >
-                <h3 class="title">RealTime Apps</h3>
+                <div class="logo">
+                    <v-icon icon="mdi-wechat" />
+                    <p class="text-h5 d-inline-block m-0">ChatOn</p>
+                </div>
                 <div>
-                    <v-btn class="mr-5">
-                        <router-link :to="{ name: 'login' }">Login</router-link>
+                    <v-btn class="mr-5" color="primary">
+                        <router-link class="text-white" :to="{ name: 'login' }">Login</router-link>
                     </v-btn>
-                    <v-btn>
-                        <router-link :to="{ name: 'register' }"
+                    <v-btn color="success">
+                        <router-link class="text-white" :to="{ name: 'register' }"
                             >Register</router-link
                         >
                     </v-btn>
@@ -45,5 +48,9 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
+nav .logo {
+    color: #7269ef !important;
+    font-size: 24px;
+}
 </style>

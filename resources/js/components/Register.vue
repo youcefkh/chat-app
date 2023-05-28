@@ -5,6 +5,11 @@
                 <v-layout class="flex-column">
                     <v-sheet xs12 sm8 md4 class="d-flex align-center justify-center w-50 m-auto py-10">
                         <v-card class="elevation-12 w-100">
+                            <v-progress-linear
+                                v-if="loading"
+                                color="primary"
+                                indeterminate
+                            ></v-progress-linear>
                             <v-toolbar dark color="success">
                                 <v-toolbar-title>Register form</v-toolbar-title>
                             </v-toolbar>
@@ -54,14 +59,13 @@
                                     ></v-text-field>
                                     <v-btn
                                         type="submit"
-                                        class="mt-4"
+                                        class="mt-4 mr-0 ml-auto d-block"
                                         style="width: 100px"
                                         color="success"
                                         value="log in"
                                         :disabled="loading"
                                         >
-                                        <span v-if="!loading">register</span>
-                                        <i v-else class="fas fa-spinner fa-pulse"></i>
+                                        <span>register</span>
                                     </v-btn>
                                 </form>
                             </v-card-text>

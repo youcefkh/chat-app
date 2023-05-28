@@ -16,6 +16,11 @@
                         class="d-flex align-center justify-center w-50 m-auto"
                     >
                         <v-card class="elevation-12 w-100">
+                            <v-progress-linear
+                                v-if="loading"
+                                color="primary"
+                                indeterminate
+                            ></v-progress-linear>
                             <v-toolbar dark color="primary">
                                 <v-toolbar-title>Login form</v-toolbar-title>
                             </v-toolbar>
@@ -44,17 +49,13 @@
                                     ></v-text-field>
                                     <v-btn
                                         type="submit"
-                                        class="mt-4"
+                                        class="mt-4 mr-0 ml-auto d-block"
                                         style="width: 100px"
                                         color="primary"
                                         value="log in"
                                         :disabled="loading"
                                     >
-                                        <span v-if="!loading">Login</span>
-                                        <i
-                                            v-else
-                                            class="fas fa-spinner fa-pulse"
-                                        ></i>
+                                        <span>Login</span>
                                     </v-btn>
                                 </form>
                             </v-card-text>
@@ -67,7 +68,7 @@
 </template>
 
 <script>
-import store from '../store';
+import store from "../store";
 export default {
     name: "Login",
     data() {
@@ -76,30 +77,34 @@ export default {
             password: "",
             loading: false,
             error: false,
-            show1: false
+            show1: false,
         };
     },
     methods: {
         login() {
-            this.loading = true
-            this.error = false
-            this.axios.post('api/login', {
-                email: this.email,
-                password: this.password
-            })
+            this.loading = true;
+            this.error = false;
+            this.axios
+                .post("api/login", {
+                    email: this.email,
+                    password: this.password,
+                })
                 .then(async (res) => {
-                    store.dispatch('setToken', res.data.token);
-                    store.dispatch('setUserData', res.data.token);
-                    store.dispatch('initializeEcho');
-                    this.$router.push({name: 'dashboard', params: {type: 'group', id: 1}})
+                    store.dispatch("setToken", res.data.token);
+                    store.dispatch("setUserData", res.data.token);
+                    store.dispatch("initializeEcho");
+                    this.$router.push({
+                        name: "dashboard",
+                        params: { type: "group", id: 1 },
+                    });
                 })
-                .catch(err => {
-                    this.error = true
-                    console.log(err)
+                .catch((err) => {
+                    this.error = true;
+                    console.log(err);
                 })
-                .then(res => {
+                .then((res) => {
                     this.loading = false;
-                })
+                });
         },
     },
 };
